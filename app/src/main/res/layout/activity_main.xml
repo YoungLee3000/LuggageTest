@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="命令执行结果:"
+                android:textSize="22dp"/>
+            <TextView
+                android:layout_marginTop="10dp"
+                android:id="@+id/tv_run"
+                android:layout_width="match_parent"
+                android:layout_height="30dp"
+                />
+
+            <TextView
+                android:layout_marginTop="10dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="回调数据:"
+                android:textSize="22dp"/>
+            <TextView
+                android:layout_marginTop="20dp"
+                android:id="@+id/tv_rel"
+                android:layout_width="match_parent"
+                android:layout_height="100dp"
+                />
+
+
+            <Button
+                android:id="@+id/btn_start"
+                android:text="开启服务"
+                android:layout_marginTop="10dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+            <Button
+                android:id="@+id/btn_stop"
+                android:text="停止服务"
+                android:layout_marginTop="10dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+
+            <Button
+                android:id="@+id/btn_send"
+                android:text="下发数据"
+                android:layout_marginTop="10dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+            <Button
+                android:id="@+id/btn_clear"
+                android:text="清除数据"
+                android:layout_marginTop="10dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+
+
+
+        </LinearLayout>
+
+
+
+
+    </ScrollView>
+
+</LinearLayout>
