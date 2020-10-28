@@ -1,14 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
     tools:context=".MainActivity">
 
-    <ScrollView
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_above="@id/v_line1">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="命令执行步骤:"
+            android:layout_weight="2"
+            android:textSize="14dp"/>
+        <TextView
+            android:id="@+id/tv_run_result"
+            android:layout_width="0dp"
+            android:layout_weight="5"
+            android:layout_height="20dp"
+            />
+
+    </LinearLayout>
+
+    <View
+        android:id="@+id/v_line1"
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:background="@color/black"
+        android:layout_above="@id/sc_step"/>
+
+
+    <ScrollView
+        android:id="@+id/sc_step"
+        android:layout_above="@id/v_line2"
+        android:layout_width="match_parent"
+        android:layout_height="120dp">
+
 
 
         <LinearLayout
@@ -16,58 +48,143 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="命令执行结果:"
-                android:textSize="22dp"/>
-            <TextView
-                android:layout_marginTop="10dp"
-                android:id="@+id/tv_run"
-                android:layout_width="match_parent"
-                android:layout_height="30dp"
-                />
 
             <TextView
                 android:layout_marginTop="10dp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="回调数据:"
-                android:textSize="22dp"/>
+                android:text="第一步，初始化:"
+                android:textSize="14dp"/>
+
+
+            <Button
+                android:id="@+id/btn_init"
+                android:text="初始化服务"
+                android:layout_marginTop="5dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+
+
             <TextView
-                android:layout_marginTop="20dp"
-                android:id="@+id/tv_rel"
-                android:layout_width="match_parent"
-                android:layout_height="100dp"
-                />
-
-
-            <Button
-                android:id="@+id/btn_start"
-                android:text="开启服务"
                 android:layout_marginTop="10dp"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
+                android:layout_height="wrap_content"
+                android:text="第二步，下发初始数据:"
+                android:textSize="14dp"/>
+
             <Button
-                android:id="@+id/btn_stop"
-                android:text="停止服务"
-                android:layout_marginTop="10dp"
+                android:id="@+id/btn_send_flight"
+                android:text="下发所有行李数据"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"/>
 
-            <Button
-                android:id="@+id/btn_send"
-                android:text="下发数据"
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <Spinner
+                    android:id="@+id/sp_clear_flight"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"/>
+
+                <Button
+                    android:id="@+id/btn_clear_flight"
+                    android:text="清除指定组数据"
+                    android:layout_width="0dp"
+                    android:layout_weight="2"
+                    android:layout_height="wrap_content"/>
+
+            </LinearLayout>
+
+
+            <TextView
                 android:layout_marginTop="10dp"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
-            <Button
-                android:id="@+id/btn_clear"
-                android:text="清除数据"
+                android:layout_height="wrap_content"
+                android:text="第三步，开启行李检测:"
+                android:textSize="14dp"/>
+
+
+
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+
+                <Button
+                    android:id="@+id/btn_start_service"
+                    android:text="开启检测"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"/>
+
+            </LinearLayout>
+
+
+
+            <TextView
                 android:layout_marginTop="10dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="第四步，发送动作信息:"
+                android:textSize="14dp"/>
+
+            <Spinner
+                android:id="@+id/sp_send_action"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"/>
 
+
+            <LinearLayout
+                android:layout_marginTop="10dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btn_new_car_ready"
+                    android:text="开始搬第一个行李"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"/>
+
+                <Button
+                    android:id="@+id/btn_new_car_done"
+                    android:text="结束搬第一个行李"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"/>
+
+            </LinearLayout>
+
+
+
+
+            <TextView
+                android:layout_marginTop="10dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="第五步，结束行李检测:"
+                android:textSize="14dp"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+
+                <Button
+                    android:id="@+id/btn_end_service"
+                    android:text="结束检测"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"/>
+
+            </LinearLayout>
 
 
         </LinearLayout>
@@ -77,4 +194,46 @@
 
     </ScrollView>
 
-</LinearLayout>
+    <View
+        android:id="@+id/v_line2"
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:background="@color/black"
+        android:layout_above="@id/tv_callback_tip"/>
+
+    <TextView
+        android:id="@+id/tv_callback_tip"
+        android:layout_marginTop="5dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@id/ll_rv"
+        android:text="回调数据:"
+        android:textSize="14dp"/>
+
+
+    <LinearLayout
+        android:id="@+id/ll_rv"
+        android:layout_alignParentBottom="true"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:orientation="vertical"
+        android:layout_marginTop="10dp">
+
+        <include
+            android:id="@+id/ic_header"
+            layout="@layout/text_item"
+            />
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_epc"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scrollbars="vertical"/>
+        <View
+            android:id="@+id/v_line_bottom"
+            android:layout_width="match_parent"
+            android:layout_height="10dp"
+            android:layout_marginBottom="10dp" />
+
+    </LinearLayout>
+
+</RelativeLayout>
