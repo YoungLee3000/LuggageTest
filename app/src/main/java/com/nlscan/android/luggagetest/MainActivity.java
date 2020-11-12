@@ -9,26 +9,34 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Message;
 import android.os.RemoteException;
 import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.nlscan.luggage.DataKey;
 import com.nlscan.luggage.IJudgeCallback;
 import com.nlscan.luggage.ModelInterface;
 import com.nlscan.luggage.ResultState;
 
+import java.lang.ref.SoftReference;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -43,6 +51,8 @@ public class MainActivity extends AppCompatActivity {
     private IJudgeCallback.Stub mCallback = new IJudgeCallback.Stub() {
         @Override
         public void onJudgeResult(String s) throws RemoteException {
+
+            Log.d(TAG,"the receive data is " + s);
             JSONArray resultArray = JSON.parseArray(s);
 
             if (resultArray != null){
@@ -50,42 +60,44 @@ public class MainActivity extends AppCompatActivity {
 
                 for(Object object : resultArray){
                     JSONObject relObj = (JSONObject) object;
+                    Log.d(TAG,"the json obj is " + relObj.toJSONString());
                     Map<String,String> map = new HashMap<>();
-                    String box_id = relObj.getString(Constants.J_TARGET_BOX_ID);
-                    String epc_id = relObj.getString(Constants.J_TARGET_EPC_ID);
-                    String box_state = relObj.getString(Constants.J_TARGET_BOX_STATE);
-                    String epcArrayStr = relObj.getString(Constants.JA_EPC_ARRAY);
+                    String box_id = ValueUtil.TextGet(relObj.getString(DataKey.J_BOX_ID)) ;
+                    String epc_id =  ValueUtil.TextGet(relObj.getString(DataKey.J_EPC_ID)) ;
+                    String box_state = ValueUtil.TextGet(relObj.getString(DataKey.J_PREDICT_BOX_STATE)) ;
+                    String car_id = ValueUtil.TextGet(relObj.getString(DataKey.J_CAR_ID));
 
-                    if (box_id!=null && epc_id!=null){
-                        if(box_id.length()>=4) box_id = "**"+box_id.substring(box_id.length()-4);
-                        if(epc_id.length()>=4) epc_id = "**"+epc_id.substring(epc_id.length()-4);
-                        map.put(Constants.RV_HEAD_EPC,epc_id+","+box_id);
+                    if(box_id.length()>=4) box_id = "**"+box_id.substring(box_id.length()-4);
+                    if(epc_id.length()>=4) epc_id = "**"+epc_id.substring(epc_id.length()-4);
+                    map.put(Constants.RV_HEAD_EPC,epc_id+","+box_id);
+
+                    String stateParse = "";
+                    switch (box_state){
+                        case ResultState.PREDICT_BOX_CLOSE:
+                            stateParse = "行李靠近";
+                            break;
+                        case ResultState.PREDICT_BOX_CARRY_RIGHT:
+                            stateParse = "携带至正确拖车";
+                            break;
+                        case ResultState.PREDICT_BOX_CARRY_WRONG:
+                            stateParse = "携带至错误拖车";
+                            break;
+                        case ResultState.PREDICT_BOX_LAY_RIGHT:
+                            stateParse = "放置正确拖车";
+                            break;
+                        case ResultState.PREDICT_BOX_LAY_WRONG:
+                            stateParse = "放置错误拖车";
+                            break;
                     }
-                    if (box_state != null){
-                        box_state = (box_state.equals(ResultState.PREDICT_BOX_LAY)?
-                                "已放置" : "正在靠近");
-                        map.put(Constants.RV_HEAD_BOX_STATE,box_state);
-                    }
-                    if(epcArrayStr != null){
-                        JSONArray epc_array = JSON.parseArray(epcArrayStr);
-                        if (epc_array != null){
-                            StringBuilder sb = new StringBuilder();
+                    map.put(Constants.RV_HEAD_BOX_STATE,stateParse);
+                    map.put(Constants.RV_HEAD_CAR,car_id);
 
-                            for(Object object2 : epc_array){
-                                JSONObject epcObject = (JSONObject) object2;
-                                sb.append(epcObject.getString(Constants.J_EPC_ID));
-                                sb.append(",");
-                                sb.append(epcObject.getString(Constants.J_RSSI));
-                                sb.append("\n");
-                            }
-                            map.put(Constants.RV_HEAD_AROUND,sb.toString());
-                        }
 
-                    }
 
-                   gDataList.add(map);
-                   myRVAdapter.notifyDataSetChanged();
-                   rvEpc.scrollToPosition(gDataList.size()-1);
+                    gDataList.add(map);
+
+                    gHandler.sendEmptyMessage(UPDATE_VIEW);
+
                 }
             }
 
@@ -107,6 +119,13 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "binding service");
         Log.d(TAG,"binding result is " + rel);
 
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                interFaceServiceInit();
+            }
+        },500);
+
     }
 
     private class  LuggageServiceConnection implements ServiceConnection {
@@ -119,6 +138,7 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
+            Log.d(TAG,"luggage service disconnected ... ");
             gBindState = false;
             gModelInterface = null;
         }
@@ -130,16 +150,21 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
+        initService();
         initData();
         initView();
-        initService();
+
     }
 
     //界面销毁时解除服务
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        unbindService(mConnection);
+        try {
+            unbindService(mConnection);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 
@@ -158,70 +183,48 @@ public class MainActivity extends AppCompatActivity {
     //----------------------------控件相关--------------------------//
 
     @BindView(R.id.tv_run_result)
-    private TextView tvRunResult;
+    TextView tvRunResult;
 
-    @BindView(R.id.btn_init)
-    private Button btnInit;
+    @BindView(R.id.ed_car_id)
+    EditText edCarId;
 
-    @BindView(R.id.btn_send_flight)
-    private Button btnSendFlight;
-
-    @BindView(R.id.btn_clear_flight)
-    private Button btnClearFlight;
 
     @BindView(R.id.btn_start_service)
-    private Button btnStartService;
+    Button btnStartService;
 
     @BindView(R.id.btn_new_car_ready)
-    private Button btnNewCarReady;
+    Button btnNewCarReady;
 
     @BindView(R.id.btn_new_car_done)
-    private Button btnNewCarDone;
+    Button btnNewCarDone;
 
     @BindView(R.id.btn_end_service)
-    private Button btnEndService;
+    Button btnEndService;
 
     @BindView(R.id.rv_epc)
-    private RecyclerView rvEpc;
+    RecyclerView rvEpc;
     private List<Map<String,String>> gDataList = new ArrayList<>();
     private MyRVAdapter myRVAdapter;
 
-    @BindView(R.id.sp_clear_flight)
-    private Spinner spClearFlight;
-
-    @BindView(R.id.sp_send_action)
-    private Spinner spSendAction;
-
-    private ArrayAdapter<String> aaFlightSet;
-    private String[] strFlightSet;
 
 
     //测试用例
     private JSONArray testDataJA;
 
     //按键事件
-    @OnClick({R.id.btn_init, R.id.btn_send_flight,R.id.btn_clear_flight,
-                R.id.btn_start_service,R.id.btn_new_car_ready,R.id.btn_new_car_done,
+    @OnClick({R.id.btn_start_service,R.id.btn_new_car_ready,R.id.btn_new_car_done,
                 R.id.btn_end_service})
     public void onClick(View view) {
         switch (view.getId()) {
-            case R.id.btn_init:
-                serviceInit();//初始化服务
-                break;
-            case R.id.btn_send_flight:
-                sendFlight();//下发所有航班的行李信息
-                break;
-            case R.id.btn_clear_flight:
-                clearFlight();//清除指定航班的行李信息
-                break;
+
             case R.id.btn_start_service:
                 startService();//开启检测服务
                 break;
             case R.id.btn_new_car_ready:
-                newCarReady();//开始搬第一个行李至拖车
+                newCar(ResultState.NEW_CAR_READY);//开始搬第一个行李至拖车
                 break;
             case R.id.btn_new_car_done:
-                newCarDone();//结束第一个行李搬运
+                newCar(ResultState.NEW_CAR_DONE);//结束第一个行李搬运
                 break;
             case R.id.btn_end_service:
                 endService();//结束服务
@@ -229,63 +232,98 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    //***按键方法***//
-    private void serviceInit(){
+    //********************按键方法********************************//
+
+    //服务初始化
+    private void interFaceServiceInit(){
 
         int rel = ResultState.FAIL;
         try {
             rel = gModelInterface.initService(); //服务初始化
             gModelInterface.setCallback(mCallback);  //设置回调接口
-        } catch (RemoteException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
+
         tvRunResult.setText("初始化结果" + ( rel == ResultState.SUCCESS ? "成功" : "失败"));
+
+        Message toastMeg = Message.obtain();
+        toastMeg.obj = "初始化结果" + ( rel == ResultState.SUCCESS ? "成功" : "失败");
+        toastMeg.what = LOAD_SUCCESS;
+        gHandler.sendMessage(toastMeg);
+
+
+        if (rel == ResultState.SUCCESS) sendFlight();
 
     }
 
+
+    //下发所有航班数据
     private void sendFlight(){
 
         String strData = testDataJA.toString();
         Log.d(TAG,"the json data is " + strData);
+        boolean result = false;
         try {
             gModelInterface.sendInfo(ResultState.DATA_BOX, strData);
-        } catch (RemoteException e) {
+            result = true;
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
-        tvRunResult.setText("下发所有行李数据");
+        tvRunResult.setText("下发所有行李数据 " + (result ? "成功" : "失败"));
 
     }
 
+
+    //清除第一组航班的数据
     private void clearFlight(){
 
-        int index = spClearFlight.getSelectedItemPosition();
-
-        JSONObject jsonObject = testDataJA.getJSONObject(index);
+        JSONObject jsonObject = testDataJA.getJSONObject(0);
 
         JSONObject clearObject = new JSONObject();
-        clearObject.put(Constants.J_FLIGHT_ID,jsonObject.getString(Constants.J_FLIGHT_ID));
+        clearObject.put(DataKey.J_FLIGHT_ID,jsonObject.getString(DataKey.J_FLIGHT_ID));
 
         JSONArray clearArray = new JSONArray();
         clearArray.add(clearObject);
         String strData = clearArray.toString();
+        boolean result = false;
         try {
             gModelInterface.clearInfo(strData);
+            result = true;
         } catch (RemoteException e) {
             e.printStackTrace();
         }
 
-        tvRunResult.setText("清除"+ (index+1) +  "组数据");
+        tvRunResult.setText("清除"+  "1组数据 " + (result ? "成功" : "失败"));
 
     }
 
+    //清除所有数据
+    private void clearAll(){
+
+        boolean result = false;
+        try {
+            gModelInterface.clearInfo(ResultState.CLEAR_ALL);
+            result =true;
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+
+        tvRunResult.setText("清除所有数据 " + (result ? "成功" : "失败"));
+    }
+
+
+
+
+    //开启检测
     private void startService(){
 
         int rel = 0;
         try {
             rel = gModelInterface.startService();
-        } catch (RemoteException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -294,62 +332,33 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void newCarReady(){
 
-        int index = spClearFlight.getSelectedItemPosition();
-
-        JSONObject jsonObject = testDataJA.getJSONObject(index);
-
+    //发送行为数据
+    private void newCar(String state){
         JSONObject actionObject = new JSONObject();
-        actionObject.put(Constants.J_FLIGHT_ID,jsonObject.getString(Constants.J_FLIGHT_ID));
-        actionObject.put(Constants.J_FLIGHT_TIME,jsonObject.getString(Constants.J_FLIGHT_TIME));
-        actionObject.put(Constants.J_FLIGHT_DEST,jsonObject.getString(Constants.J_FLIGHT_DEST));
-        actionObject.put(Constants.J_ACTION,ResultState.ACTION_NEW_CAR_READY);
+
+        actionObject.put(DataKey.J_CAR_ID,edCarId.getText().toString());
+        actionObject.put(DataKey.J_NEW_CAR,state);
 
         JSONArray actionArray = new JSONArray();
         actionArray.add(actionObject);
 
 
         String strData = actionArray.toString();
+        boolean result = false;
         try {
-            gModelInterface.sendInfo(ResultState.DATA_ACTION,strData);
+            gModelInterface.sendInfo(ResultState.DATA_NEW_CAR,strData);
+            result = true;
         } catch (RemoteException e) {
             e.printStackTrace();
         }
 
-        tvRunResult.setText("开始为"+ (index+1) +  "组行李选拖车");
-
+        tvRunResult.setText("发送行为数据 "  + state + (result ? "成功" : "失败"));
     }
 
-    private void newCarDone(){
-
-        int index = spClearFlight.getSelectedItemPosition();
-
-        JSONObject jsonObject = testDataJA.getJSONObject(index);
-
-        JSONObject actionObject = new JSONObject();
-        actionObject.put(Constants.J_FLIGHT_ID,jsonObject.getString(Constants.J_FLIGHT_ID));
-        actionObject.put(Constants.J_FLIGHT_TIME,jsonObject.getString(Constants.J_FLIGHT_TIME));
-        actionObject.put(Constants.J_FLIGHT_DEST,jsonObject.getString(Constants.J_FLIGHT_DEST));
-        actionObject.put(Constants.J_ACTION,ResultState.ACTION_NEW_CAR_DONE);
-
-        JSONArray actionArray = new JSONArray();
-        actionArray.add(actionObject);
 
 
-        String strData = actionArray.toString();
-        try {
-            gModelInterface.sendInfo(ResultState.DATA_ACTION,strData);
-        } catch (RemoteException e) {
-            e.printStackTrace();
-        }
-
-        tvRunResult.setText("结束"+ (index+1) +  "组行李拖车选择");
-
-
-
-    }
-
+    //结束检测
     private void endService(){
 
         int rel = 0;
@@ -364,32 +373,25 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    //***按键方法***//
+
+
+
+    //********************按键方法********************************//
 
 
 
 
+    private static final String CSV_FLIE = "/sdcard/myuhf/flight_data.json";
     //初始化测试用例
     private void initData(){
         String dataStr = FileUtil.readJsonFile(this,R.raw.flight_data);
+//        String dataStr = FileUtil.readJsonFile(CSV_FLIE);
         testDataJA = JSON.parseArray(dataStr);
-        if (testDataJA != null){
-            strFlightSet = new String[testDataJA.size()];
-            for (int i=0; i<testDataJA.size(); i++){
-                strFlightSet[i] =  (i+1) + "组数据" ;
-            }
-        }
+
     }
 
     //初始化spinner与recycleView
     private void initView(){
-
-        //初始化清除数据选项
-        aaFlightSet= new ArrayAdapter<>(this,
-                android.R.layout.simple_spinner_item, strFlightSet);
-        aaFlightSet.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spClearFlight.setAdapter(aaFlightSet);
-        spSendAction.setAdapter(aaFlightSet);
 
         //初始化recycleView
         myRVAdapter = new MyRVAdapter(this,gDataList);
@@ -412,7 +414,41 @@ public class MainActivity extends AppCompatActivity {
     //----------------------------控件相关--------------------------//
 
 
+    private static final int UPDATE_VIEW = 1;
+    private static final int LOAD_SUCCESS = 2;
 
+    private MyHandler gHandler = new MyHandler(this);
+
+    /**
+     * 静态Handler
+     */
+    static class MyHandler extends Handler {
+
+        private SoftReference<MainActivity> mySoftReference;
+
+        public MyHandler(MainActivity mainActivity) {
+            this.mySoftReference = new SoftReference<>(mainActivity);
+        }
+
+        @Override
+        public void handleMessage(Message msg){
+            final MainActivity mainActivity = mySoftReference.get();
+            String str = (String) msg.obj;
+            switch (msg.what) {
+
+                case UPDATE_VIEW:
+                    mainActivity.myRVAdapter.notifyDataSetChanged();
+                    mainActivity.rvEpc.scrollToPosition(mainActivity.gDataList.size()-1);
+
+                    break;
+                case LOAD_SUCCESS:
+
+                    Toast.makeText(mainActivity,str,Toast.LENGTH_SHORT).show();
+                    break;
+            }
+
+        }
+    }
 
 
 

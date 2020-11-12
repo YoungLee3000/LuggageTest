@@ -1,6 +1,8 @@
 package com.nlscan.android.luggagetest;
 
 import android.content.Context;
+import android.graphics.Color;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,6 +15,7 @@ import java.util.Map;
 
 public class MyRVAdapter extends RecyclerView.Adapter<MyRVAdapter.MyTVHolder> {
 
+    private static final String TAG = "LuggageService";
     private final LayoutInflater mLayoutInflater;
     private final Context mContext;
 //    private  List<PersonInfo> mData;
@@ -36,16 +39,27 @@ public class MyRVAdapter extends RecyclerView.Adapter<MyRVAdapter.MyTVHolder> {
                                                      mContext.getResources().getColor(R.color.white));
 
 
-
-
+        Log.d(TAG,"the bind view pos " + pos);
 
         holder.mIndexView.setText(""+ (pos+1));
 
         Map<String,String> map = mData.get(pos);
 
         holder.mEpcView.setText(map.get(Constants.RV_HEAD_EPC));
-        holder.mStateView.setText(map.get(Constants.RV_HEAD_BOX_STATE));
-        holder.mAroundView.setText(map.get(Constants.RV_HEAD_AROUND));
+
+        String boxState = map.get(Constants.RV_HEAD_BOX_STATE);
+        if ("放置正确拖车".equals(boxState)){
+            holder.mStateView.setTextColor(Color.GREEN);
+        }
+        else if("放置错误拖车".equals(boxState)) {
+            holder.mStateView.setTextColor(Color.RED);
+        }
+
+        holder.mStateView.setText(boxState);
+
+        holder.mAroundView.setText(map.get(Constants.RV_HEAD_CAR));
+
+
 
     }
 

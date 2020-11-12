@@ -18,7 +18,7 @@
     <com.nlscan.android.luggagetest.BorderTextView
         android:id="@+id/tv_item_epc"
         android:layout_width="0dp"
-        android:layout_weight="2"
+        android:layout_weight="3"
         android:layout_height="wrap_content"
         android:gravity="center_horizontal"
         android:text="目标行李"
@@ -38,10 +38,10 @@
     <com.nlscan.android.luggagetest.BorderTextView
         android:id="@+id/tv_item_around"
         android:layout_width="0dp"
-        android:layout_weight="3"
+        android:layout_weight="2"
         android:layout_height="wrap_content"
         android:gravity="center_horizontal"
-        android:text="周围标签"
+        android:text="拖车号"
         android:textColor="@color/black"
         android:textSize="14sp"/>
 

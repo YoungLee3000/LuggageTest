@@ -6,13 +6,19 @@ android {
 
     defaultConfig {
         applicationId "com.nlscan.android.luggagetest"
-        minSdkVersion 16
+        minSdkVersion 24
         targetSdkVersion 29
         versionCode 1
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
+
+    compileOptions{
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
 
     buildTypes {
         release {
@@ -35,8 +41,6 @@ dependencies {
     annotationProcessor 'com.jakewharton:butterknife-compiler:10.2.1'
     implementation 'androidx.recyclerview:recyclerview:1.2.0-alpha01'
     implementation 'com.alibaba:fastjson:1.2.68'
-    implementation fileTree(dir: 'libs', include: ['*.aar', '*.jar'], exclude: [])
-    implementation fileTree(dir: 'libs', include: ['*.aar', '*.jar'], exclude: [])
-    implementation fileTree(dir: 'libs', include: ['*.aar', '*.jar'], exclude: [])
+
     implementation fileTree(dir: 'libs', include: ['*.aar', '*.jar'], exclude: [])
 }
