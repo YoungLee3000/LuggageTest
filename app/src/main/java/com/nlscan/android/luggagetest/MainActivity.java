@@ -8,6 +8,8 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.media.AudioManager;
+import android.media.SoundPool;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -89,6 +91,17 @@ public class MainActivity extends AppCompatActivity {
                             stateParse = "放置错误拖车";
                             break;
                     }
+                    if ("".equals(stateParse)) continue;
+
+                    final int playId =    performSound(true);
+                    new Timer().schedule(new TimerTask() {
+                        @Override
+                        public void run() {
+                            soundPool.stop(playId);
+                        }
+                    },1000);
+
+
                     map.put(Constants.RV_HEAD_BOX_STATE,stateParse);
                     map.put(Constants.RV_HEAD_CAR,car_id);
 
@@ -122,7 +135,8 @@ public class MainActivity extends AppCompatActivity {
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
-                interFaceServiceInit();
+                Log.d(TAG, "interface service init");
+                interfaceServiceInit();
             }
         },500);
 
@@ -131,6 +145,7 @@ public class MainActivity extends AppCompatActivity {
     private class  LuggageServiceConnection implements ServiceConnection {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
+            Log.d(TAG,"luggage service connected ");
             gModelInterface = ModelInterface.Stub.asInterface(service);
             gBindState = true;
 
@@ -160,11 +175,18 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        endService();
+
+        //------------删除所有数据，慎用！调试时需要用到--------------------//
+        clearAll();
+        //-------------删除所有数据，慎用！调试时需要用到--------------------//
         try {
             unbindService(mConnection);
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+
     }
 
 
@@ -235,10 +257,11 @@ public class MainActivity extends AppCompatActivity {
     //********************按键方法********************************//
 
     //服务初始化
-    private void interFaceServiceInit(){
+    private void interfaceServiceInit(){
 
         int rel = ResultState.FAIL;
         try {
+            Log.d(TAG, "remote service init");
             rel = gModelInterface.initService(); //服务初始化
             gModelInterface.setCallback(mCallback);  //设置回调接口
         } catch (Exception e) {
@@ -253,7 +276,7 @@ public class MainActivity extends AppCompatActivity {
         toastMeg.what = LOAD_SUCCESS;
         gHandler.sendMessage(toastMeg);
 
-
+//        sendFlight();
         if (rel == ResultState.SUCCESS) sendFlight();
 
     }
@@ -265,6 +288,7 @@ public class MainActivity extends AppCompatActivity {
         String strData = testDataJA.toString();
         Log.d(TAG,"the json data is " + strData);
         boolean result = false;
+        disConnectToast();
         try {
             gModelInterface.sendInfo(ResultState.DATA_BOX, strData);
             result = true;
@@ -289,10 +313,12 @@ public class MainActivity extends AppCompatActivity {
         clearArray.add(clearObject);
         String strData = clearArray.toString();
         boolean result = false;
+
+        disConnectToast();
         try {
             gModelInterface.clearInfo(strData);
             result = true;
-        } catch (RemoteException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -304,10 +330,11 @@ public class MainActivity extends AppCompatActivity {
     private void clearAll(){
 
         boolean result = false;
+        disConnectToast();
         try {
             gModelInterface.clearInfo(ResultState.CLEAR_ALL);
             result =true;
-        } catch (RemoteException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -321,6 +348,7 @@ public class MainActivity extends AppCompatActivity {
     private void startService(){
 
         int rel = 0;
+        disConnectToast();
         try {
             rel = gModelInterface.startService();
         } catch (Exception e) {
@@ -346,10 +374,11 @@ public class MainActivity extends AppCompatActivity {
 
         String strData = actionArray.toString();
         boolean result = false;
+        disConnectToast();
         try {
             gModelInterface.sendInfo(ResultState.DATA_NEW_CAR,strData);
             result = true;
-        } catch (RemoteException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -362,9 +391,10 @@ public class MainActivity extends AppCompatActivity {
     private void endService(){
 
         int rel = 0;
+        disConnectToast();
         try {
             rel = gModelInterface.stopService();
-        } catch (RemoteException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -373,6 +403,13 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    //服务断开提醒
+    private void disConnectToast(){
+        if (gModelInterface == null){
+            Toast.makeText(this,"服务已断开！",Toast.LENGTH_SHORT).show();
+            return;
+        }
+    }
 
 
 
@@ -382,12 +419,34 @@ public class MainActivity extends AppCompatActivity {
 
 
     private static final String CSV_FLIE = "/sdcard/myuhf/flight_data.json";
+    private SoundPool soundPool;
     //初始化测试用例
     private void initData(){
         String dataStr = FileUtil.readJsonFile(this,R.raw.flight_data);
 //        String dataStr = FileUtil.readJsonFile(CSV_FLIE);
         testDataJA = JSON.parseArray(dataStr);
 
+
+        //初始化蜂鸣器
+        soundPool = new SoundPool(10, AudioManager.STREAM_RING, 5);
+        soundPool.load(this, R.raw.beep51, 1);
+
+    }
+
+
+    /**
+     * 发出警报
+     */
+    private int performSound(boolean ifLoop){
+        AudioManager am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        // 获取最大音量值
+        float audioMaxVolumn = am.getStreamMaxVolume(AudioManager.STREAM_RING);
+        // 不断获取当前的音量值
+        float audioCurrentVolumn = am.getStreamVolume(AudioManager.STREAM_RING);
+        //最终影响音量
+//        float volumnRatio = audioCurrentVolumn/audioMaxVolumn;
+        float volumnRatio = 1.0f;
+        return soundPool.play(1, volumnRatio, volumnRatio, 0, ifLoop?-1:0, 1);
     }
 
     //初始化spinner与recycleView

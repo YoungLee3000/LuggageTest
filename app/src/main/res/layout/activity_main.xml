@@ -54,7 +54,18 @@
 
 
 
+
+
+
+            <EditText
+                android:id="@+id/ed_car_id"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="拖车号" />
+
+
             <LinearLayout
+                android:layout_marginTop="5dp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
@@ -62,7 +73,6 @@
                 <Button
                     android:id="@+id/btn_start_service"
                     android:text="开启检测"
-                    android:layout_marginRight="10dp"
                     android:layout_width="0dp"
                     android:layout_weight="1"
                     android:layout_height="wrap_content"/>
@@ -75,26 +85,10 @@
                     android:layout_weight="1"
                     android:layout_height="wrap_content"/>
 
-            </LinearLayout>
-
-
-            <EditText
-                android:id="@+id/ed_car_id"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="拖车号" />
-
-
-            <LinearLayout
-                android:layout_marginTop="10dp"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
                 <Button
                     android:id="@+id/btn_new_car_ready"
                     android:text="开始搬第一个行李"
-                    android:layout_marginRight="10dp"
+                    android:layout_marginLeft="10dp"
                     android:layout_width="0dp"
                     android:layout_weight="1"
                     android:layout_height="wrap_content"/>
@@ -108,15 +102,6 @@
                     android:layout_height="wrap_content"/>
 
             </LinearLayout>
-
-
-
-
-
-
-
-
-
 
 
 
@@ -150,7 +135,7 @@
         android:id="@+id/ll_rv"
         android:layout_alignParentBottom="true"
         android:layout_width="match_parent"
-        android:layout_height="100dp"
+        android:layout_height="150dp"
         android:orientation="vertical"
         android:layout_marginTop="10dp">
 
