@@ -2,7 +2,8 @@
   {
     "flight_id": "AB1234" ,
     "flight_time": "2020-10-10 15:45:00" ,
-    "flight_dest": "SH" ,
+    "box_start": "BJ" ,
+    "box_dest": "SH" ,
     "epc_array":
     [
       {"epc_id": "485695553EFF0800","box_id": "255"},
@@ -18,7 +19,8 @@
   {
     "flight_id": "AB1280" ,
     "flight_time": "2020-10-10 15:45:00" ,
-    "flight_dest": "HN" ,
+    "box_start": "BJ" ,
+    "box_dest": "SH" ,
     "epc_array":
     [
       {"epc_id": "485695553EFF0800","box_id": "456"},
@@ -32,7 +34,8 @@
   {
     "flight_id": "AB1299" ,
     "flight_time": "2020-10-12 12:45:00" ,
-    "flight_dest": "SZ" ,
+    "box_start": "BJ" ,
+    "box_dest": "SH" ,
     "epc_array":
     [
       {"epc_id": "485695553EFE0800","box_id": "331"},

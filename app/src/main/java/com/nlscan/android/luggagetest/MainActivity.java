@@ -30,6 +30,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.nlscan.luggage.DataKey;
 import com.nlscan.luggage.IJudgeCallback;
 import com.nlscan.luggage.ModelInterface;
+import com.nlscan.luggage.ParamValue;
 import com.nlscan.luggage.ResultState;
 
 import java.lang.ref.SoftReference;
@@ -64,6 +65,8 @@ public class MainActivity extends AppCompatActivity {
                     JSONObject relObj = (JSONObject) object;
                     Log.d(TAG,"the json obj is " + relObj.toJSONString());
                     Map<String,String> map = new HashMap<>();
+                    String current_case = ValueUtil.TextGet(relObj.getString(DataKey.J_CASE));
+                    if (!current_case.equals(mCase)) continue;
                     String box_id = ValueUtil.TextGet(relObj.getString(DataKey.J_BOX_ID)) ;
                     String epc_id =  ValueUtil.TextGet(relObj.getString(DataKey.J_EPC_ID)) ;
                     String box_state = ValueUtil.TextGet(relObj.getString(DataKey.J_PREDICT_BOX_STATE)) ;
@@ -85,19 +88,20 @@ public class MainActivity extends AppCompatActivity {
                             break;
                         case ResultState.PREDICT_BOX_CARRY_WRONG:
                             stateParse = "携带至错误拖车";
-                            final int playId =    performSound(true);
-                            new Timer().schedule(new TimerTask() {
-                                @Override
-                                public void run() {
-                                    soundPool.stop(playId);
-                                }
-                            },1000);
+                            wrongNotify();
                             break;
                         case ResultState.PREDICT_BOX_LAY_RIGHT:
                             stateParse = "放置正确拖车";
                             break;
                         case ResultState.PREDICT_BOX_LAY_WRONG:
                             stateParse = "放置错误拖车";
+                            break;
+                        case ResultState.PREDICT_BOX_BAN:
+                            stateParse = "非法搬运";
+                            wrongNotify();
+                            break;
+                        case ResultState.PREDICT_BOX_LACK:
+                            stateParse = "缺失的行李";
                             break;
                     }
                     if ("".equals(stateParse)) continue;
@@ -119,6 +123,17 @@ public class MainActivity extends AppCompatActivity {
 
         }
     };
+
+
+    private void wrongNotify(){
+        final int playId =    performSound(true);
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                soundPool.stop(playId);
+            }
+        },1000);
+    }
 
     private boolean gBindState = false;//服务是否绑定成功
 
@@ -161,6 +176,15 @@ public class MainActivity extends AppCompatActivity {
             gModelInterface = null;
         }
     }
+
+
+
+
+    //上一个界面传来的值
+    private String mFlight = "";
+    private String mStationName = "";
+    private String mStationType = "";
+    private String mCase = "";
 
     //界面创建时绑定服务
     @Override
@@ -210,6 +234,9 @@ public class MainActivity extends AppCompatActivity {
     @BindView(R.id.tv_run_result)
     TextView tvRunResult;
 
+    @BindView(R.id.tv_current_case)
+    TextView tvCurrentCase;
+
     @BindView(R.id.ed_car_id)
     EditText edCarId;
 
@@ -247,11 +274,11 @@ public class MainActivity extends AppCompatActivity {
                 break;
             case R.id.btn_new_car_ready:
 
-                newCar(ResultState.NEW_CAR_READY);//开始搬第一个行李至拖车
+                newCar(ParamValue.NEW_CAR_READY);//开始搬第一个行李至拖车
                 break;
             case R.id.btn_new_car_done:
 
-                newCar(ResultState.NEW_CAR_DONE);//结束第一个行李搬运
+                newCar(ParamValue.NEW_CAR_DONE);//结束第一个行李搬运
                 break;
             case R.id.btn_end_service:
                 endService();//结束服务
@@ -282,7 +309,34 @@ public class MainActivity extends AppCompatActivity {
         gHandler.sendMessage(toastMeg);
 
 //        sendFlight();
-        if (rel == ResultState.SUCCESS) sendFlight();
+
+
+    }
+
+
+    //下发场景数据
+    private void sendCase(){
+
+        JSONArray caseArray = new JSONArray();
+        JSONObject caseObject = new JSONObject();
+        caseObject.put(DataKey.J_CASE,mCase);
+        caseObject.put(DataKey.J_FLIGHT_ID,mFlight);
+        caseObject.put(DataKey.J_CURRENT_STATION,mStationName);
+        caseObject.put(DataKey.J_STATION_TYPE,mStationType);
+        caseArray.add(caseObject);
+
+        String strData = caseArray.toString();
+        Log.d(TAG,"the json data is " + strData);
+        boolean result = false;
+        disConnectToast();
+        try {
+            gModelInterface.sendInfo(ParamValue.DATA_CASE, strData);
+            result = true;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        tvRunResult.setText("下发场景数据 " + (result ? "成功" : "失败"));
 
     }
 
@@ -295,7 +349,7 @@ public class MainActivity extends AppCompatActivity {
         boolean result = false;
         disConnectToast();
         try {
-            gModelInterface.sendInfo(ResultState.DATA_BOX, strData);
+            gModelInterface.sendInfo(ParamValue.DATA_BOX, strData);
             result = true;
         } catch (Exception e) {
             e.printStackTrace();
@@ -337,7 +391,7 @@ public class MainActivity extends AppCompatActivity {
         boolean result = false;
         disConnectToast();
         try {
-            gModelInterface.clearInfo(ResultState.CLEAR_ALL);
+            gModelInterface.clearInfo(ParamValue.CLEAR_ALL);
             result =true;
         } catch (Exception e) {
             e.printStackTrace();
@@ -381,7 +435,7 @@ public class MainActivity extends AppCompatActivity {
         boolean result = false;
         disConnectToast();
         try {
-            gModelInterface.sendInfo(ResultState.DATA_NEW_CAR,strData);
+            gModelInterface.sendInfo(ParamValue.DATA_NEW_CAR,strData);
             result = true;
         } catch (Exception e) {
             e.printStackTrace();
@@ -433,6 +487,12 @@ public class MainActivity extends AppCompatActivity {
         testDataJA = JSON.parseArray(dataStr);
 
 
+        mFlight = getIntent().getStringExtra(Constants.SP_KEY_FLIGHT);
+        mCase = getIntent().getStringExtra(Constants.SP_KEY_CASE);
+        mStationName = getIntent().getStringExtra(Constants.SP_KEY_STATION_NAME);
+        mStationType = getIntent().getStringExtra(Constants.SP_KEY_STATION_TYPE);
+
+
         //初始化蜂鸣器
         soundPool = new SoundPool(10, AudioManager.STREAM_RING, 5);
         soundPool.load(this, R.raw.beep51, 1);
@@ -440,6 +500,11 @@ public class MainActivity extends AppCompatActivity {
         //初始化蜂鸣器2
         soundPool2 = new SoundPool(10, AudioManager.STREAM_RING, 5);
         soundPool2.load(this, R.raw.beep, 1);
+
+
+        //下发初始数据
+        sendCase();
+        sendFlight();
 
     }
 
@@ -467,6 +532,8 @@ public class MainActivity extends AppCompatActivity {
 
     //初始化spinner与recycleView
     private void initView(){
+
+        tvCurrentCase.setText(mCase+"," + mFlight + ","  + mStationName + "," + mStationType);
 
         //初始化recycleView
         myRVAdapter = new MyRVAdapter(this,gDataList);
