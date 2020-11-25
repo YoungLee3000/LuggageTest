@@ -80,9 +80,18 @@ public class MainActivity extends AppCompatActivity {
                             break;
                         case ResultState.PREDICT_BOX_CARRY_RIGHT:
                             stateParse = "携带至正确拖车";
+                            performSound(false);
+
                             break;
                         case ResultState.PREDICT_BOX_CARRY_WRONG:
                             stateParse = "携带至错误拖车";
+                            final int playId =    performSound(true);
+                            new Timer().schedule(new TimerTask() {
+                                @Override
+                                public void run() {
+                                    soundPool.stop(playId);
+                                }
+                            },1000);
                             break;
                         case ResultState.PREDICT_BOX_LAY_RIGHT:
                             stateParse = "放置正确拖车";
@@ -93,13 +102,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                     if ("".equals(stateParse)) continue;
 
-                    final int playId =    performSound(true);
-                    new Timer().schedule(new TimerTask() {
-                        @Override
-                        public void run() {
-                            soundPool.stop(playId);
-                        }
-                    },1000);
+
 
 
                     map.put(Constants.RV_HEAD_BOX_STATE,stateParse);
@@ -243,9 +246,11 @@ public class MainActivity extends AppCompatActivity {
                 startService();//开启检测服务
                 break;
             case R.id.btn_new_car_ready:
+
                 newCar(ResultState.NEW_CAR_READY);//开始搬第一个行李至拖车
                 break;
             case R.id.btn_new_car_done:
+
                 newCar(ResultState.NEW_CAR_DONE);//结束第一个行李搬运
                 break;
             case R.id.btn_end_service:
@@ -420,6 +425,7 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String CSV_FLIE = "/sdcard/myuhf/flight_data.json";
     private SoundPool soundPool;
+    private SoundPool soundPool2;
     //初始化测试用例
     private void initData(){
         String dataStr = FileUtil.readJsonFile(this,R.raw.flight_data);
@@ -430,6 +436,10 @@ public class MainActivity extends AppCompatActivity {
         //初始化蜂鸣器
         soundPool = new SoundPool(10, AudioManager.STREAM_RING, 5);
         soundPool.load(this, R.raw.beep51, 1);
+
+        //初始化蜂鸣器2
+        soundPool2 = new SoundPool(10, AudioManager.STREAM_RING, 5);
+        soundPool2.load(this, R.raw.beep, 1);
 
     }
 
@@ -446,7 +456,13 @@ public class MainActivity extends AppCompatActivity {
         //最终影响音量
 //        float volumnRatio = audioCurrentVolumn/audioMaxVolumn;
         float volumnRatio = 1.0f;
-        return soundPool.play(1, volumnRatio, volumnRatio, 0, ifLoop?-1:0, 1);
+        if (ifLoop){
+            return soundPool.play(1, volumnRatio, volumnRatio, 0, -1, 1);
+        }
+        else{
+            return soundPool2.play(1, volumnRatio, volumnRatio, 0, 0, 1);
+        }
+
     }
 
     //初始化spinner与recycleView
