@@ -9,6 +9,7 @@
 
 
     <LinearLayout
+        android:layout_marginTop="50dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
@@ -16,6 +17,7 @@
         android:id="@+id/ll_1">
 
         <TextView
+            android:layout_marginLeft="20dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
@@ -27,26 +29,31 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal">
             <RadioButton
+                android:layout_marginLeft="10dp"
                 android:id="@+id/rb_case_1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="1"/>
             <RadioButton
+                android:layout_marginLeft="10dp"
                 android:id="@+id/rb_case_2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="2"/>
             <RadioButton
+                android:layout_marginLeft="10dp"
                 android:id="@+id/rb_case_3"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="3"/>
             <RadioButton
+                android:layout_marginLeft="10dp"
                 android:id="@+id/rb_case_3_1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="3-1"/>
             <RadioButton
+                android:layout_marginLeft="10dp"
                 android:id="@+id/rb_case_4"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -58,6 +65,7 @@
 
 
     <LinearLayout
+        android:layout_marginLeft="20dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
@@ -76,16 +84,19 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal">
             <RadioButton
+                android:layout_marginLeft="10dp"
                 android:id="@+id/rb_start"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="起始站"/>
             <RadioButton
+                android:layout_marginLeft="10dp"
                 android:id="@+id/rb_middle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="经停站"/>
             <RadioButton
+                android:layout_marginLeft="10dp"
                 android:id="@+id/rb_dest"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -96,6 +107,7 @@
 
 
     <LinearLayout
+        android:layout_marginLeft="20dp"
         android:id="@+id/ll_3"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -118,6 +130,7 @@
 
     </LinearLayout>
     <LinearLayout
+        android:layout_marginLeft="20dp"
         android:id="@+id/ll_4"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

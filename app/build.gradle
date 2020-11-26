@@ -42,6 +42,4 @@ dependencies {
     implementation 'androidx.recyclerview:recyclerview:1.2.0-alpha01'
     implementation 'com.alibaba:fastjson:1.2.68'
     implementation fileTree(dir: 'libs', include: ['*.aar', '*.jar'], exclude: [])
-    implementation fileTree(dir: 'libs', include: ['*.aar', '*.jar'], exclude: [])
-    implementation fileTree(dir: 'libs', include: ['*.aar', '*.jar'], exclude: [])
 }

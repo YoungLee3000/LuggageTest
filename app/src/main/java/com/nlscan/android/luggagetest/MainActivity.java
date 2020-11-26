@@ -156,7 +156,7 @@ public class MainActivity extends AppCompatActivity {
                 Log.d(TAG, "interface service init");
                 interfaceServiceInit();
             }
-        },500);
+        },600);
 
     }
 
@@ -192,8 +192,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
-        initService();
         initData();
+        initService();
         initView();
 
     }
@@ -308,7 +308,12 @@ public class MainActivity extends AppCompatActivity {
         toastMeg.what = LOAD_SUCCESS;
         gHandler.sendMessage(toastMeg);
 
-//        sendFlight();
+        //下发初始数据
+        if (rel == ResultState.SUCCESS){
+            sendCase();
+            sendFlight();
+        }
+
 
 
     }
@@ -465,7 +470,11 @@ public class MainActivity extends AppCompatActivity {
     //服务断开提醒
     private void disConnectToast(){
         if (gModelInterface == null){
-            Toast.makeText(this,"服务已断开！",Toast.LENGTH_SHORT).show();
+            try {
+                Toast.makeText(this,"服务已断开！",Toast.LENGTH_SHORT).show();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
             return;
         }
     }
@@ -502,9 +511,7 @@ public class MainActivity extends AppCompatActivity {
         soundPool2.load(this, R.raw.beep, 1);
 
 
-        //下发初始数据
-        sendCase();
-        sendFlight();
+
 
     }
 
