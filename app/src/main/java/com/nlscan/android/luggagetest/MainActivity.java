@@ -17,6 +17,7 @@ import android.os.Message;
 import android.os.RemoteException;
 import android.util.Log;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -191,6 +192,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         ButterKnife.bind(this);
         initData();
         initService();
@@ -486,13 +488,13 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-    private static final String CSV_FLIE = "/sdcard/myuhf/flight_data.json";
+    private static final String CSV_FLIE = "/sdcard/myLuggage/flight_data.json";
     private SoundPool soundPool;
     private SoundPool soundPool2;
     //初始化测试用例
     private void initData(){
-        String dataStr = FileUtil.readJsonFile(this,R.raw.flight_data);
-//        String dataStr = FileUtil.readJsonFile(CSV_FLIE);
+//        String dataStr = FileUtil.readJsonFile(this,R.raw.flight_data);
+        String dataStr = FileUtil.readJsonFile(CSV_FLIE);
         testDataJA = JSON.parseArray(dataStr);
 
 
