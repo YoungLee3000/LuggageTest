@@ -2,25 +2,16 @@ package com.nlscan.android.luggagetest;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.os.IBinder;
-import android.os.RemoteException;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.nlscan.luggage.IJudgeCallback;
-import com.nlscan.luggage.ModelInterface;
 import com.nlscan.luggage.ParamValue;
 
 import java.io.File;
@@ -90,7 +81,11 @@ public class EntryActivity extends AppCompatActivity {
 
     //测试文件目录
     private String filePath = "/sdcard/myLuggage/";
-    private String fileName = "flight_data.json";
+    private String fileName_1 = "flight_data_1.json";
+    private String fileName_2 = "flight_data_2.json";
+    private String fileName_3 = "flight_data_3.json";
+    private String fileName_3_1 = "flight_data_3_1.json";
+    private String fileName_4 = "flight_data_4.json";
 
 
 
@@ -234,7 +229,11 @@ public class EntryActivity extends AppCompatActivity {
      */
     private void initFile(){
         FileUtil.createDir(filePath);
-        copyfile(filePath,fileName,R.raw.flight_data);
+        copyfile(filePath,fileName_1,R.raw.flight_data_1);
+        copyfile(filePath,fileName_2,R.raw.flight_data_2);
+        copyfile(filePath,fileName_3,R.raw.flight_data_3);
+        copyfile(filePath,fileName_3_1,R.raw.flight_data_3_1);
+        copyfile(filePath,fileName_4,R.raw.flight_data_4);
 
     }
 

@@ -488,20 +488,46 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-    private static final String CSV_FLIE = "/sdcard/myLuggage/flight_data.json";
+    private static final String CSV_FILE_1 = "/sdcard/myLuggage/flight_data_1.json";
+    private static final String CSV_FILE_2 = "/sdcard/myLuggage/flight_data_2.json";
+    private static final String CSV_FILE_3 = "/sdcard/myLuggage/flight_data_3.json";
+    private static final String CSV_FILE_3_1 = "/sdcard/myLuggage/flight_data_3_1.json";
+    private static final String CSV_FILE_4 = "/sdcard/myLuggage/flight_data_4.json";
+
     private SoundPool soundPool;
     private SoundPool soundPool2;
     //初始化测试用例
     private void initData(){
-//        String dataStr = FileUtil.readJsonFile(this,R.raw.flight_data);
-        String dataStr = FileUtil.readJsonFile(CSV_FLIE);
-        testDataJA = JSON.parseArray(dataStr);
+
+
 
 
         mFlight = getIntent().getStringExtra(Constants.SP_KEY_FLIGHT);
         mCase = getIntent().getStringExtra(Constants.SP_KEY_CASE);
         mStationName = getIntent().getStringExtra(Constants.SP_KEY_STATION_NAME);
         mStationType = getIntent().getStringExtra(Constants.SP_KEY_STATION_TYPE);
+
+
+        String dataStr = "";
+        switch (mCase){
+            default:
+            case ParamValue.CASE_DEFAULT:
+                dataStr = FileUtil.readJsonFile(CSV_FILE_1);
+                break;
+            case ParamValue.CASE_CAR_TO_STORE:
+                dataStr = FileUtil.readJsonFile(CSV_FILE_2);
+                break;
+            case ParamValue.CASE_STORE_TO_CAR:
+                dataStr = FileUtil.readJsonFile(CSV_FILE_3);
+                break;
+            case ParamValue.CASE_STORE_SEARCH:
+                dataStr = FileUtil.readJsonFile(CSV_FILE_3_1);
+                break;
+            case ParamValue.CASE_CAR_TO_BAND :
+                dataStr = FileUtil.readJsonFile(CSV_FILE_4);
+                break;
+        }
+        testDataJA = JSON.parseArray(dataStr);
 
 
         //初始化蜂鸣器
