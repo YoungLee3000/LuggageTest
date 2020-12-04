@@ -530,6 +530,12 @@ public class MainActivity extends AppCompatActivity {
         testDataJA = JSON.parseArray(dataStr);
 
 
+        if (!ParamValue.CASE_DEFAULT.equals(mCase)){
+            edCarId.setVisibility(View.GONE);
+            btnNewCarReady.setVisibility(View.GONE);
+            btnNewCarDone.setVisibility(View.GONE);
+        }
+
         //初始化蜂鸣器
         soundPool = new SoundPool(10, AudioManager.STREAM_RING, 5);
         soundPool.load(this, R.raw.beep51, 1);
