@@ -1,13 +1,16 @@
 package com.nlscan.android.luggagetest;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.graphics.Color;
 import android.media.AudioManager;
 import android.media.SoundPool;
 import android.os.Bundle;
@@ -16,6 +19,7 @@ import android.os.IBinder;
 import android.os.Message;
 import android.os.RemoteException;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ArrayAdapter;
@@ -35,6 +39,7 @@ import com.nlscan.luggage.ParamValue;
 import com.nlscan.luggage.ResultState;
 
 import java.lang.ref.SoftReference;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -90,6 +95,7 @@ public class MainActivity extends AppCompatActivity {
                         case ResultState.PREDICT_BOX_CARRY_WRONG:
                             stateParse = "携带至错误拖车";
                             wrongNotify();
+//                            performSound(true);
                             break;
                         case ResultState.PREDICT_BOX_LAY_RIGHT:
                             stateParse = "放置正确拖车";
@@ -100,9 +106,11 @@ public class MainActivity extends AppCompatActivity {
                         case ResultState.PREDICT_BOX_BAN:
                             stateParse = "非法搬运";
                             wrongNotify();
+//                            performSound(true);
                             break;
                         case ResultState.PREDICT_BOX_LACK:
                             stateParse = "缺失的行李";
+                            performSound(false);
                             break;
                     }
                     if ("".equals(stateParse)) continue;
@@ -206,14 +214,77 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
         endService();
 
-        //------------删除所有数据，慎用！调试时需要用到--------------------//
-        clearAll();
-        //-------------删除所有数据，慎用！调试时需要用到--------------------//
+
         try {
             unbindService(mConnection);
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+
+    }
+
+
+    //返回时询问是否清除所以数据
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            showDialog("是否清除所有数据", Color.RED);
+        }
+
+        return false;
+    }
+
+
+
+
+
+    AlertDialog gAlertDialog;
+    /**
+     * 显示弹出窗
+     * @param meg
+     */
+    private void showDialog(String meg,int colorID){
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                clearAll();
+                gAlertDialog.dismiss();
+                MainActivity.this.finish();
+            }
+        });
+        builder.setNegativeButton("取消", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                MainActivity.this.finish();
+            }
+        });
+
+        gAlertDialog = builder.create();
+
+        gAlertDialog.setTitle("清除数据");
+
+        gAlertDialog.setMessage(meg);
+        gAlertDialog.show();
+
+        try {
+            Field mAlert = AlertDialog.class.getDeclaredField("mAlert");
+            mAlert.setAccessible(true);
+            Object mAlertController = mAlert.get(gAlertDialog);
+            Field mMessage = mAlertController.getClass().getDeclaredField("mMessageView");
+            mMessage.setAccessible(true);
+            TextView mMessageView = (TextView) mMessage.get(mAlertController);
+            mMessageView.setTextColor(colorID);
+            mMessageView.setTextSize(25);
+            mMessageView.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (NoSuchFieldException e) {
+            e.printStackTrace();
+        }
+
 
 
     }
