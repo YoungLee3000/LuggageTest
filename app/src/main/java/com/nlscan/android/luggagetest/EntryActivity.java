@@ -194,6 +194,7 @@ public class EntryActivity extends AppCompatActivity {
         btn_entry.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
                 Intent intent = new Intent(EntryActivity.this,MainActivity.class);
 
 

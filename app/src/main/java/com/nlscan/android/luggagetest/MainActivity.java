@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.ComponentName;
 import android.content.Context;
@@ -36,6 +37,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.nlscan.luggage.DataKey;
 import com.nlscan.luggage.IJudgeCallback;
+import com.nlscan.luggage.LuggageManager;
 import com.nlscan.luggage.ModelInterface;
 import com.nlscan.luggage.ParamValue;
 import com.nlscan.luggage.ResultState;
@@ -150,43 +152,17 @@ public class MainActivity extends AppCompatActivity {
 
 
     //初始化服务
-    private LuggageServiceConnection mConnection;
-    private ModelInterface gModelInterface;
+
+    private LuggageManager gLuggageInstance;
     private void initService(){
 
-        Intent service = new Intent("android.nlscan.intent.action.START_LUGGAGE_SERVICE");
-        service.setPackage("com.nlscan.luggage");
-        mConnection = new LuggageServiceConnection();
-        boolean rel = getApplicationContext().bindService(service,mConnection, Context.BIND_AUTO_CREATE);
-        Log.d(TAG, "binding service");
-        Log.d(TAG,"binding result is " + rel);
+        gLuggageInstance = LuggageManager.getInstance(getApplicationContext());
 
-        new Timer().schedule(new TimerTask() {
-            @Override
-            public void run() {
-                Log.d(TAG, "interface service init");
-                interfaceServiceInit();
-            }
-        },600);
+        interfaceServiceInit();
 
     }
 
-    private class  LuggageServiceConnection implements ServiceConnection {
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            Log.d(TAG,"luggage service connected ");
-            gModelInterface = ModelInterface.Stub.asInterface(service);
-            gBindState = true;
 
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            Log.d(TAG,"luggage service disconnected ... ");
-            gBindState = false;
-            gModelInterface = null;
-        }
-    }
 
 
 
@@ -207,8 +183,9 @@ public class MainActivity extends AppCompatActivity {
         showLoadingWindow("服务开启中...");
 
         initData();
-        initService();
         initView();
+        initService();
+
 
     }
 
@@ -219,11 +196,7 @@ public class MainActivity extends AppCompatActivity {
         endService();
 
 
-        try {
-            unbindService(mConnection);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+
 
 
     }
@@ -370,14 +343,7 @@ public class MainActivity extends AppCompatActivity {
     //服务初始化
     private void interfaceServiceInit(){
 
-        int rel = ResultState.FAIL;
-        try {
-            Log.d(TAG, "remote service init");
-            rel = gModelInterface.initService(); //服务初始化
-            gModelInterface.setCallback(mCallback);  //设置回调接口
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        int rel = gLuggageInstance.initService();
 
 
         tvRunResult.setText("初始化结果" + ( rel == ResultState.SUCCESS ? "成功" : "失败"));
@@ -387,8 +353,9 @@ public class MainActivity extends AppCompatActivity {
         toastMeg.what = LOAD_SUCCESS;
         gHandler.sendMessage(toastMeg);
 
-        //下发初始数据
+        //初始化成功后开始设置回调接口、下发场景数据、航班数据
         if (rel == ResultState.SUCCESS){
+            gLuggageInstance.setCallback(mCallback);
             sendCase();
             sendFlight();
 
@@ -412,17 +379,10 @@ public class MainActivity extends AppCompatActivity {
         caseArray.add(caseObject);
 
         String strData = caseArray.toString();
-        Log.d(TAG,"the json data is " + strData);
-        boolean result = false;
-        disConnectToast();
-        try {
-            gModelInterface.sendInfo(ParamValue.DATA_CASE, strData);
-            result = true;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        Log.d(TAG,"the case json data is " + strData);
+        int rel = gLuggageInstance.sendInfo(ParamValue.DATA_CASE,strData);
 
-        tvRunResult.setText("下发场景数据 " + (result ? "成功" : "失败"));
+        tvRunResult.setText("下发场景数据 " + (rel==ResultState.SUCCESS ? "成功" : "失败"));
 
     }
 
@@ -432,16 +392,10 @@ public class MainActivity extends AppCompatActivity {
 
         String strData = testDataJA.toString();
         Log.d(TAG,"the json data is " + strData);
-        boolean result = false;
-        disConnectToast();
-        try {
-            gModelInterface.sendInfo(ParamValue.DATA_BOX, strData);
-            result = true;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        int rel = gLuggageInstance.sendInfo(ParamValue.DATA_BOX,strData);
 
-        tvRunResult.setText("下发所有行李数据 " + (result ? "成功" : "失败"));
+
+        tvRunResult.setText("下发所有行李数据 " + (rel==ResultState.SUCCESS ? "成功" : "失败"));
 
     }
 
@@ -457,33 +411,23 @@ public class MainActivity extends AppCompatActivity {
         JSONArray clearArray = new JSONArray();
         clearArray.add(clearObject);
         String strData = clearArray.toString();
-        boolean result = false;
 
-        disConnectToast();
-        try {
-            gModelInterface.clearInfo(strData);
-            result = true;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        int rel = gLuggageInstance.clearInfo(strData);
 
-        tvRunResult.setText("清除"+  "1组数据 " + (result ? "成功" : "失败"));
+        tvRunResult.setText("清除"+  "1组数据 " + (rel==ResultState.SUCCESS ? "成功" : "失败"));
 
     }
 
     //清除所有数据
     private void clearAll(){
 
-        boolean result = false;
-        disConnectToast();
-        try {
-            gModelInterface.clearInfo(ParamValue.CLEAR_ALL);
-            result =true;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
 
-        tvRunResult.setText("清除所有数据 " + (result ? "成功" : "失败"));
+
+        int rel = gLuggageInstance.clearInfo(ParamValue.CLEAR_ALL);
+
+
+
+        tvRunResult.setText("清除所有数据 " + (rel==ResultState.SUCCESS ? "成功" : "失败"));
     }
 
 
@@ -492,13 +436,7 @@ public class MainActivity extends AppCompatActivity {
     //开启检测
     private void startService(){
 
-        int rel = 0;
-        disConnectToast();
-        try {
-            rel = gModelInterface.startService();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        int rel = gLuggageInstance.startService();
 
         tvRunResult.setText("开启服务结果: " +  ( rel == ResultState.SUCCESS ? "成功" : "失败") );
 
@@ -518,16 +456,10 @@ public class MainActivity extends AppCompatActivity {
 
 
         String strData = actionArray.toString();
-        boolean result = false;
-        disConnectToast();
-        try {
-            gModelInterface.sendInfo(ParamValue.DATA_NEW_CAR,strData);
-            result = true;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
 
-        tvRunResult.setText("发送行为数据 "  + state + (result ? "成功" : "失败"));
+        int rel = gLuggageInstance.sendInfo(ParamValue.DATA_NEW_CAR,strData);
+
+        tvRunResult.setText("发送行为数据 "  + state + (rel==ResultState.SUCCESS ? "成功" : "失败"));
     }
 
 
@@ -535,30 +467,15 @@ public class MainActivity extends AppCompatActivity {
     //结束检测
     private void endService(){
 
-        int rel = 0;
-        disConnectToast();
-        try {
-            rel = gModelInterface.stopService();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+
+        int rel = gLuggageInstance.stopService();
 
         tvRunResult.setText("结束服务结果: " +  ( rel == ResultState.SUCCESS ? "成功" : "失败") );
 
 
     }
 
-    //服务断开提醒
-    private void disConnectToast(){
-        if (gModelInterface == null){
-            try {
-                Toast.makeText(this,"服务已断开！",Toast.LENGTH_SHORT).show();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            return;
-        }
-    }
+
 
 
 
