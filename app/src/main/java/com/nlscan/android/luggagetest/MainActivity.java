@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.app.ProgressDialog;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -21,6 +22,7 @@ import android.os.RemoteException;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -202,6 +204,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         ButterKnife.bind(this);
+        showLoadingWindow("服务开启中...");
+
         initData();
         initService();
         initView();
@@ -290,8 +294,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-
-
     //*-------------服务连接相关-------------------------//
 
 
@@ -344,6 +346,8 @@ public class MainActivity extends AppCompatActivity {
 
             case R.id.btn_start_service:
                 startService();//开启检测服务
+                btnStartService.setEnabled(false);
+                btnEndService.setEnabled(true);
                 break;
             case R.id.btn_new_car_ready:
 
@@ -355,6 +359,8 @@ public class MainActivity extends AppCompatActivity {
                 break;
             case R.id.btn_end_service:
                 endService();//结束服务
+                btnStartService.setEnabled(true);
+                btnEndService.setEnabled(false);
                 break;
         }
     }
@@ -385,6 +391,8 @@ public class MainActivity extends AppCompatActivity {
         if (rel == ResultState.SUCCESS){
             sendCase();
             sendFlight();
+
+            gHandler.sendEmptyMessage(CLICK_START);
         }
 
 
@@ -657,6 +665,56 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    private ProgressDialog mDialog;
+    /**
+     * 显示进度条
+     * @param message
+     */
+    protected void showLoadingWindow(String message)
+    {
+
+
+        if(isDialogShow())
+            return ;
+
+        mDialog = new ProgressDialog(this) ;
+        mDialog.setProgressStyle(ProgressDialog.BUTTON_NEUTRAL);// 设置进度条的形式为圆形转动的进度条
+        mDialog.setCancelable(true);// 设置是否可以通过点击Back键取消
+        mDialog.setCanceledOnTouchOutside(true);// 设置在点击Dialog外是否取消Dialog进度条
+        // 设置提示的title的图标，默认是没有的，如果没有设置title的话只设置Icon是不会显示图标的
+
+        mDialog.setMessage(message);
+        mDialog.show();
+
+        View v = mDialog.getWindow().getDecorView();
+        setDialogText(v);
+    }
+
+    private boolean isDialogShow(){
+        return mDialog != null && mDialog.isShowing();
+    }
+
+    //设置其字体大小
+    private void setDialogText(View v){
+        if(v instanceof ViewGroup){
+            ViewGroup parent=(ViewGroup)v;
+            int count=parent.getChildCount();
+            for(int i=0;i<count;i++){
+                View child=parent.getChildAt(i);
+                setDialogText(child);
+            }
+        }else if(v instanceof TextView){
+            ((TextView)v).setTextSize(22);
+        }
+    }
+
+    protected void  cancelDialog(){
+        if (mDialog != null){
+            mDialog.dismiss();
+        }
+    }
+
+
 
 
 
@@ -670,6 +728,7 @@ public class MainActivity extends AppCompatActivity {
 
     private static final int UPDATE_VIEW = 1;
     private static final int LOAD_SUCCESS = 2;
+    private static final int CLICK_START = 3;
 
     private MyHandler gHandler = new MyHandler(this);
 
@@ -696,8 +755,12 @@ public class MainActivity extends AppCompatActivity {
 
                     break;
                 case LOAD_SUCCESS:
-
+                    mainActivity.cancelDialog();
                     Toast.makeText(mainActivity,str,Toast.LENGTH_SHORT).show();
+                    break;
+                case CLICK_START:
+                    mainActivity.btnNewCarDone.setEnabled(true);
+                    mainActivity.btnStartService.performClick();
                     break;
             }
 
