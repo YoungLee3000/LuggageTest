@@ -170,6 +170,7 @@
             android:layout_weight="1"
             android:layout_height="wrap_content"
             android:text="进入场景"
+            android:background="@color/cron"
             android:layout_marginTop="10dp"
             />
 

@@ -1,3 +1,36 @@
 <resources>
     <string name="app_name">LuggageTest</string>
+
+
+    <string name="predict_box_close">行李靠近</string>
+    <string name="predict_box_carry_right">携带正确</string>
+    <string name="predict_box_carry_wrong">携带错误</string>
+    <string name="predict_box_lay_right">放置正确</string>
+    <string name="predict_box_lay_wrong">放置错误</string>
+    <string name="predict_box_ban">错误出入舱</string>
+    <string name="predict_box_lack">缺失的行李</string>
+
+    <string name="case_1">场景1</string>
+    <string name="case_2">场景2</string>
+    <string name="case_3">场景3</string>
+    <string name="case_3_1">场景3-1</string>
+    <string name="case_4">场景4</string>
+
+    <string name="station_start">始发站</string>
+    <string name="station_middle">经停站</string>
+    <string name="station_dest">终点站</string>
+
+
+    <string name="in_hug">搬运中</string>
+    <string name="in_lay">搬运完成</string>
+    <string name="right">正确</string>
+    <string name="wrong">错误</string>
+
+
+    <string name="sure">确定</string>
+    <string name="cancel">取消</string>
+
+
+    <string name="car_tips">请在完成第一个行李的搬运时,点击“设置拖车”按钮设置拖车号。</string>
+
 </resources>

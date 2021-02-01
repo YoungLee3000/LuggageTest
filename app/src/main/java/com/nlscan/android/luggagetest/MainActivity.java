@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.ComponentName;
@@ -20,14 +21,17 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.RemoteException;
+import android.os.Vibrator;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -46,8 +50,10 @@ import java.lang.ref.SoftReference;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -82,42 +88,64 @@ public class MainActivity extends AppCompatActivity {
                     String box_state = ValueUtil.TextGet(relObj.getString(DataKey.J_PREDICT_BOX_STATE)) ;
                     String car_id = ValueUtil.TextGet(relObj.getString(DataKey.J_CAR_ID));
 
-                    if(box_id.length()>=4) box_id = "**"+box_id.substring(box_id.length()-4);
-                    if(epc_id.length()>=4) epc_id = "**"+epc_id.substring(epc_id.length()-4);
-                    map.put(Constants.RV_HEAD_EPC,epc_id+","+box_id);
+//                    if(box_id.length()>=4) box_id = "**"+box_id.substring(box_id.length()-4);
+//                    if(epc_id.length()>=4) epc_id = "**"+epc_id.substring(epc_id.length()-4);
+                    map.put(Constants.RV_HEAD_EPC,epc_id);
+
+
+                    if (gDataMap.containsKey(epc_id)){
+                        mCurrentData = (ResultItems) gDataMap.get(epc_id);
+                    }
+                    else{
+                        mCurrentData = new ResultItems();
+                    }
+
+                    String hugState = ValueUtil.TextGet(mCurrentData.getHugState()) ;
+                    String layState = ValueUtil.TextGet(mCurrentData.getLayState()) ;
 
                     String stateParse = "";
                     switch (box_state){
                         case ResultState.PREDICT_BOX_CLOSE:
-                            stateParse = "行李靠近";
+                            stateParse = getResources().getString(R.string.predict_box_close);
+
                             break;
                         case ResultState.PREDICT_BOX_CARRY_RIGHT:
-                            stateParse = "携带至正确拖车";
+                            stateParse = getResources().getString(R.string.predict_box_carry_right);
                             performSound(false);
+                            hugState = getResources().getString(R.string.right);
 
                             break;
                         case ResultState.PREDICT_BOX_CARRY_WRONG:
-                            stateParse = "携带至错误拖车";
+                            stateParse = getResources().getString(R.string.predict_box_carry_wrong);
                             wrongNotify();
-//                            performSound(true);
+                            hugState = getResources().getString(R.string.wrong);
                             break;
                         case ResultState.PREDICT_BOX_LAY_RIGHT:
-                            stateParse = "放置正确拖车";
+                            stateParse = getResources().getString(R.string.predict_box_lay_right);
+                            layState = getResources().getString(R.string.right);
                             break;
                         case ResultState.PREDICT_BOX_LAY_WRONG:
-                            stateParse = "放置错误拖车";
+                            stateParse = getResources().getString(R.string.predict_box_lay_wrong);
+                            layState = getResources().getString(R.string.wrong);
                             break;
                         case ResultState.PREDICT_BOX_BAN:
-                            stateParse = "非法搬运";
+                            stateParse = getResources().getString(R.string.predict_box_ban);
+                            hugState = getResources().getString(R.string.predict_box_ban);
                             wrongNotify();
-//                            performSound(true);
                             break;
                         case ResultState.PREDICT_BOX_LACK:
-                            stateParse = "缺失的行李";
+                            stateParse = getResources().getString(R.string.predict_box_lack);
+                            hugState = getResources().getString(R.string.predict_box_lack);
                             performSound(false);
                             break;
                     }
                     if ("".equals(stateParse)) continue;
+
+
+
+                    mCurrentData = new ResultItems(epc_id,box_id,hugState,layState,car_id);
+
+                    gDataMap.put(epc_id,mCurrentData);
 
 
 
@@ -136,6 +164,55 @@ public class MainActivity extends AppCompatActivity {
 
         }
     };
+
+    //更新当前标签信息
+    private void updateResultView(){
+        tvBoxAndEpc.setText( mCurrentData.getEpcId() );
+        tvInHugTip.setText("");
+        tvInHugState.setText("");
+        tvInLayTip.setText("");
+        tvInLayState.setText("");
+
+        String hugState = mCurrentData.getHugState();
+        String layState = mCurrentData.getLayState();
+
+        if (!"".equals(hugState)){
+            tvInHugTip.setText(getString(R.string.in_hug));
+            tvInHugState.setText(hugState);
+
+            if (getString(R.string.right).equals(hugState)){
+                tvInHugState.setTextColor(getResources().getColor(R.color.green));
+            }
+            else if (getString(R.string.wrong).equals(hugState)){
+                tvInHugState.setTextColor(getResources().getColor(R.color.red));
+            }
+        }
+        else{
+            tvInHugTip.setText("");
+        }
+
+
+
+        if (!"".equals(layState)){
+            tvInLayTip.setText(getString(R.string.in_lay));
+            tvInLayState.setText(layState);
+
+            if (getString(R.string.right).equals(layState)){
+                tvInLayState.setTextColor(getResources().getColor(R.color.green));
+            }
+            else if (getString(R.string.wrong).equals(layState)){
+                tvInLayState.setTextColor(getResources().getColor(R.color.red));
+            }
+        }
+        else{
+            tvInLayTip.setText("");
+        }
+
+        tvCarId.setText("拖车号: \n" + mCurrentData.getCarId());
+
+
+
+    }
 
 
     private void wrongNotify(){
@@ -172,6 +249,12 @@ public class MainActivity extends AppCompatActivity {
     private String mStationName = "";
     private String mStationType = "";
     private String mCase = "";
+
+
+    private String mFlightStr = "";
+    private String mStationNameStr = "";
+    private String mStationTypeStr = "";
+    private String mCaseStr = "";
 
     //界面创建时绑定服务
     @Override
@@ -285,15 +368,12 @@ public class MainActivity extends AppCompatActivity {
     @BindView(R.id.tv_current_case)
     TextView tvCurrentCase;
 
-    @BindView(R.id.ed_car_id)
-    EditText edCarId;
-
 
     @BindView(R.id.btn_start_service)
     Button btnStartService;
 
-    @BindView(R.id.btn_new_car_ready)
-    Button btnNewCarReady;
+    @BindView(R.id.btn_show_record)
+    Button btnShowRecord;
 
     @BindView(R.id.btn_new_car_done)
     Button btnNewCarDone;
@@ -301,10 +381,43 @@ public class MainActivity extends AppCompatActivity {
     @BindView(R.id.btn_end_service)
     Button btnEndService;
 
-    @BindView(R.id.rv_epc)
+    @BindView(R.id.ll_history)
+    LinearLayout layoutHistory;
+
+    @BindView(R.id.btn_close_record)
+    Button btnCloseRecord;
+
+
+    @BindView(R.id.tv_car_id_set)
+    TextView tvCarIdSet;
+
+    @BindView(R.id.tv_box_and_epc)
+    TextView tvBoxAndEpc;
+
+    @BindView(R.id.tv_car_id)
+    TextView tvCarId;
+
+    @BindView(R.id.tv_in_hug_tip)
+    TextView tvInHugTip;
+
+    @BindView(R.id.tv_in_lay_tip)
+    TextView tvInLayTip;
+
+    @BindView(R.id.tv_in_hug_state)
+    TextView tvInHugState;
+
+    @BindView(R.id.tv_in_lay_state)
+    TextView tvInLayState;
+
+
+
+    @BindView(R.id.rv_epc_data)
     RecyclerView rvEpc;
     private List<Map<String,String>> gDataList = new ArrayList<>();
     private MyRVAdapter myRVAdapter;
+    private ResultItems mCurrentData = new ResultItems();
+    private Map<String,ResultItems> gDataMap = new HashMap<>();
+    private Set<String> mCarIdSet = new HashSet<>();
 
 
 
@@ -312,8 +425,8 @@ public class MainActivity extends AppCompatActivity {
     private JSONArray testDataJA;
 
     //按键事件
-    @OnClick({R.id.btn_start_service,R.id.btn_new_car_ready,R.id.btn_new_car_done,
-                R.id.btn_end_service})
+    @OnClick({R.id.btn_start_service,R.id.btn_new_car_done,
+                R.id.btn_end_service,R.id.btn_show_record,R.id.btn_close_record})
     public void onClick(View view) {
         switch (view.getId()) {
 
@@ -322,18 +435,23 @@ public class MainActivity extends AppCompatActivity {
                 btnStartService.setEnabled(false);
                 btnEndService.setEnabled(true);
                 break;
-            case R.id.btn_new_car_ready:
 
-                newCar(ParamValue.NEW_CAR_READY);//开始搬第一个行李至拖车
-                break;
             case R.id.btn_new_car_done:
 
-                newCar(ParamValue.NEW_CAR_DONE);//结束第一个行李搬运
+                showDialog();
                 break;
             case R.id.btn_end_service:
                 endService();//结束服务
                 btnStartService.setEnabled(true);
                 btnEndService.setEnabled(false);
+                break;
+            case R.id.btn_show_record:
+
+                layoutHistory.setVisibility(View.VISIBLE);
+
+                break;
+            case R.id.btn_close_record:
+                layoutHistory.setVisibility(View.GONE);
                 break;
         }
     }
@@ -445,10 +563,10 @@ public class MainActivity extends AppCompatActivity {
 
 
     //发送行为数据
-    private void newCar(String state){
+    private void newCar(String carId,String state){
         JSONObject actionObject = new JSONObject();
 
-        actionObject.put(DataKey.J_CAR_ID,edCarId.getText().toString());
+        actionObject.put(DataKey.J_CAR_ID,carId);
         actionObject.put(DataKey.J_NEW_CAR,state);
 
         JSONArray actionArray = new JSONArray();
@@ -462,6 +580,36 @@ public class MainActivity extends AppCompatActivity {
         tvRunResult.setText("发送行为数据 "  + state + (rel==ResultState.SUCCESS ? "成功" : "失败"));
     }
 
+
+    //显示设置拖车号的对话框
+    public void showDialog() {
+        final CustomEditTextDialog customDialog = new CustomEditTextDialog(this);
+        final EditText editText = (EditText) customDialog.getEditText();//方法在CustomDialog中实现
+        customDialog.setOnSureListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String carID = editText.getText().toString();
+                mCarIdSet.add(carID);
+                String carIDSets = "";
+                for (String item: mCarIdSet){
+                    carIDSets += item;
+                    carIDSets += " ";
+                }
+                tvCarIdSet.setText(carIDSets);
+                newCar(carID,ParamValue.NEW_CAR_DONE);
+                Log.d(TAG,"the car id is " + carID);
+                customDialog.dismiss();
+            }
+        });
+        customDialog.setOnCanlceListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                customDialog.dismiss();
+            }
+        });
+        customDialog.setTile("请输入拖车号");
+        customDialog.show();
+    }
 
 
     //结束检测
@@ -492,6 +640,9 @@ public class MainActivity extends AppCompatActivity {
 
     private SoundPool soundPool;
     private SoundPool soundPool2;
+    private Vibrator mVibrator;
+    private long[] mPattern = {0,500};
+
     //初始化测试用例
     private void initData(){
 
@@ -504,31 +655,49 @@ public class MainActivity extends AppCompatActivity {
         mStationType = getIntent().getStringExtra(Constants.SP_KEY_STATION_TYPE);
 
 
+        mFlightStr = "航班号: " + mFlight;
+        mStationNameStr = "站点: " + mStationName;
+
         String dataStr = "";
         switch (mCase){
             default:
             case ParamValue.CASE_DEFAULT:
                 dataStr = FileUtil.readJsonFile(CSV_FILE_1);
+                mCaseStr = "当前场景: "  +  getString(R.string.case_1);
                 break;
             case ParamValue.CASE_CAR_TO_STORE:
                 dataStr = FileUtil.readJsonFile(CSV_FILE_2);
+                mCaseStr = "当前场景: "  +  getString(R.string.case_2);
                 break;
             case ParamValue.CASE_STORE_TO_CAR:
                 dataStr = FileUtil.readJsonFile(CSV_FILE_3);
+                mCaseStr = "当前场景: "  +  getString(R.string.case_3);
                 break;
             case ParamValue.CASE_STORE_SEARCH:
                 dataStr = FileUtil.readJsonFile(CSV_FILE_3_1);
+                mCaseStr = "当前场景: "  +  getString(R.string.case_3_1);
                 break;
             case ParamValue.CASE_CAR_TO_BAND :
                 dataStr = FileUtil.readJsonFile(CSV_FILE_4);
+                mCaseStr = "当前场景: "  +  getString(R.string.case_4);
+                break;
+        }
+        switch (mStationType){
+            default:
+            case ParamValue.STATION_START:
+                mStationTypeStr ="站点类型: "  + getString(R.string.station_start);
+                break;
+            case ParamValue.STATION_MIDDLE:
+                mStationTypeStr ="站点类型: "  + getString(R.string.station_middle);
+                break;
+            case ParamValue.STATION_DEST:
+                mStationTypeStr = "站点类型: "  + getString(R.string.station_dest);
                 break;
         }
         testDataJA = JSON.parseArray(dataStr);
 
 
         if (!ParamValue.CASE_DEFAULT.equals(mCase)){
-            edCarId.setVisibility(View.GONE);
-            btnNewCarReady.setVisibility(View.GONE);
             btnNewCarDone.setVisibility(View.GONE);
         }
 
@@ -541,6 +710,8 @@ public class MainActivity extends AppCompatActivity {
         soundPool2.load(this, R.raw.beep, 1);
 
 
+        //初始化振动
+        mVibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 
 
     }
@@ -556,21 +727,23 @@ public class MainActivity extends AppCompatActivity {
         // 不断获取当前的音量值
         float audioCurrentVolumn = am.getStreamVolume(AudioManager.STREAM_RING);
         //最终影响音量
-//        float volumnRatio = audioCurrentVolumn/audioMaxVolumn;
-        float volumnRatio = 1.0f;
+        float volumnRatio = audioCurrentVolumn/audioMaxVolumn;
+
         if (ifLoop){
+            mVibrator.vibrate(mPattern,-1);
             return soundPool.play(1, volumnRatio, volumnRatio, 0, -1, 1);
         }
         else{
             return soundPool2.play(1, volumnRatio, volumnRatio, 0, 0, 1);
         }
 
+
     }
 
     //初始化spinner与recycleView
     private void initView(){
 
-        tvCurrentCase.setText(mCase+"," + mFlight + ","  + mStationName + "," + mStationType);
+        tvCurrentCase.setText(mCaseStr);
 
         //初始化recycleView
         myRVAdapter = new MyRVAdapter(this,gDataList);
@@ -669,6 +842,7 @@ public class MainActivity extends AppCompatActivity {
                 case UPDATE_VIEW:
                     mainActivity.myRVAdapter.notifyDataSetChanged();
                     mainActivity.rvEpc.scrollToPosition(mainActivity.gDataList.size()-1);
+                    mainActivity.updateResultView();
 
                     break;
                 case LOAD_SUCCESS:

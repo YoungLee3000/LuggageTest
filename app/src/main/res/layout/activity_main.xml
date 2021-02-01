@@ -12,7 +12,8 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:layout_marginTop="5dp"
-        android:layout_alignParentTop="true">
+        android:layout_alignParentTop="true"
+        android:visibility="gone">
 
         <TextView
             android:layout_width="0dp"
@@ -29,21 +30,44 @@
 
     </LinearLayout>
 
+    <LinearLayout
+        android:id="@+id/ll_case"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_alignParentTop="true"
+        >
+
+
+        <TextView
+            android:id="@+id/tv_current_case"
+            android:layout_marginTop="5dp"
+            android:layout_width="0dp"
+            android:layout_weight="6"
+            android:textColor="@color/black"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textSize="16dp"/>
+
+
+    </LinearLayout>
+
+
     <View
         android:id="@+id/v_line1"
         android:layout_width="match_parent"
         android:layout_height="2dp"
         android:background="@color/black"
-        android:layout_below="@id/ll_exe_rel"/>
+        android:layout_below="@id/ll_case"/>
 
 
     <ScrollView
         android:id="@+id/sc_step"
-        android:layout_below="@id/v_line1"
-        android:layout_above="@id/v_line2"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
+        android:layout_height="wrap_content"
+        android:layout_above="@id/v_line2"
+        android:layout_below="@id/v_line1"
+        android:layout_marginBottom="-12dp">
 
 
         <LinearLayout
@@ -51,69 +75,87 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-
-
-
-
-
-
-            <EditText
-                android:id="@+id/ed_car_id"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="拖车号" />
-
-
             <LinearLayout
-                android:layout_marginTop="5dp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
                 android:orientation="horizontal">
 
-                <Button
-                    android:id="@+id/btn_start_service"
-                    android:text="开启检测"
+                <TextView
                     android:layout_width="0dp"
+                    android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:enabled="false"
-                    android:layout_height="wrap_content"/>
+                    android:text="已设置拖车号:" />
 
-                <Button
-                    android:id="@+id/btn_end_service"
-                    android:text="结束检测"
-                    android:layout_marginLeft="10dp"
+                <TextView
+                    android:id="@+id/tv_car_id_set"
                     android:layout_width="0dp"
-                    android:layout_weight="1"
-                    android:enabled="false"
-                    android:layout_height="wrap_content"/>
-
-                <Button
-                    android:id="@+id/btn_new_car_ready"
-                    android:text="开始搬第一个行李"
-                    android:layout_marginLeft="10dp"
-                    android:layout_width="0dp"
-                    android:layout_weight="1"
-                    android:visibility="gone"
-                    android:layout_height="wrap_content"/>
-
-                <Button
-                    android:id="@+id/btn_new_car_done"
-                    android:text="完成搬第一个行李"
-                    android:layout_marginLeft="10dp"
-                    android:layout_width="0dp"
-                    android:layout_weight="1"
-                    android:enabled="false"
-                    android:layout_height="wrap_content"/>
+                    android:layout_height="wrap_content"
+                    android:layout_weight="3" />
 
             </LinearLayout>
 
 
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:orientation="horizontal">
 
+                <Button
+                    android:id="@+id/btn_start_service"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@drawable/set_btn"
+                    android:enabled="false"
+                    android:textSize="18dp"
+                    android:text="开启检测" />
+
+                <Button
+                    android:id="@+id/btn_end_service"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="10dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/set_btn"
+                    android:enabled="false"
+                    android:textSize="18dp"
+                    android:text="结束检测" />
+
+
+                <Button
+                    android:id="@+id/btn_new_car_done"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="10dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/set_btn"
+                    android:enabled="false"
+                    android:textSize="18dp"
+                    android:text="设置拖车" />
+
+                <Button
+                    android:id="@+id/btn_show_record"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="10dp"
+                    android:layout_weight="1"
+                    android:textSize="18dp"
+                    android:background="@drawable/set_btn"
+                    android:text="标签记录" />
+
+
+            </LinearLayout>
+
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/car_tips" />
 
 
         </LinearLayout>
-
-
 
 
     </ScrollView>
@@ -123,57 +165,127 @@
         android:layout_width="match_parent"
         android:layout_height="2dp"
         android:background="@color/black"
-        android:layout_above="@id/ll_case"/>
+        android:layout_above="@id/ll_result"/>
 
 
-    <LinearLayout
-        android:id="@+id/ll_case"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_above="@id/ll_rv">
 
-
-        <TextView
-            android:layout_marginTop="5dp"
-            android:layout_width="0dp"
-            android:layout_weight="2"
-            android:layout_height="wrap_content"
-            android:text="当前场景:"
-            android:textSize="14dp"/>
-
-        <TextView
-            android:id="@+id/tv_current_case"
-            android:layout_marginTop="5dp"
-            android:layout_width="0dp"
-            android:layout_weight="6"
-            android:layout_height="wrap_content"
-            android:text=""
-            android:textSize="14dp"/>
-
-
-    </LinearLayout>
 
 
 
 
     <LinearLayout
-        android:id="@+id/ll_rv"
+        android:id="@+id/ll_result"
         android:layout_alignParentBottom="true"
         android:layout_width="match_parent"
-        android:layout_height="140dp"
+        android:layout_height="165dp"
         android:orientation="vertical"
-        android:layout_marginTop="10dp">
+        android:layout_marginTop="20dp">
 
-        <include
-            android:id="@+id/ic_header"
-            layout="@layout/text_item"
-            />
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rv_epc"
+        <TextView
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:scrollbars="vertical"/>
+            android:layout_height="wrap_content"
+            android:textColor="@color/black"
+            android:background="@color/cron"
+            android:text="搬运结果"
+            android:textAlignment="center"
+            />
+
+
+        <LinearLayout
+            android:id="@+id/ll_result_content"
+            android:textAlignment="center"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="10dp">
+
+            <TextView
+                android:id="@+id/tv_box_and_epc"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:textAlignment="inherit"
+                android:layout_gravity="center_vertical"
+                android:layout_height="wrap_content"/>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:textAlignment="center"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/bg_text_left_border">
+
+                <TextView
+                    android:id="@+id/tv_in_hug_tip"
+                    android:layout_width="match_parent"
+                    android:layout_height="65dp"
+
+                    android:textSize="16dp"
+                    android:textAlignment="inherit"
+                    android:gravity="center_vertical"
+                    android:text=""
+                    android:background="@drawable/bg_text_left_bottom_border"/>
+
+                <TextView
+                    android:id="@+id/tv_in_lay_tip"
+                    android:layout_width="match_parent"
+                    android:layout_height="65dp"
+                    android:textAlignment="inherit"
+                    android:gravity="center_vertical"
+                    android:textSize="16dp"
+                    android:text=""/>
+
+            </LinearLayout>
+
+
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:textAlignment="center"
+                android:background="@drawable/bg_text_left_border">
+
+                <TextView
+                    android:id="@+id/tv_in_hug_state"
+                    android:layout_width="match_parent"
+                    android:layout_height="65dp"
+                    android:textSize="16dp"
+                    android:text=""
+                    android:textAlignment="inherit"
+                    android:gravity="center_vertical"
+                    android:background="@drawable/bg_text_left_bottom_border"/>
+
+                <TextView
+                    android:id="@+id/tv_in_lay_state"
+                    android:layout_width="match_parent"
+                    android:layout_height="65dp"
+                    android:textSize="16dp"
+                    android:textAlignment="inherit"
+                    android:gravity="center_vertical"
+                    android:text=""/>
+
+            </LinearLayout>
+
+
+            <TextView
+                android:id="@+id/tv_car_id"
+                android:textAlignment="inherit"
+                android:gravity="center_vertical"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+
+                android:textSize="18dp"
+                android:background="@drawable/bg_text_left_border"
+                android:layout_height="match_parent"/>
+
+
+
+
+
+        </LinearLayout>
+
         <View
             android:id="@+id/v_line_bottom"
             android:layout_width="match_parent"
@@ -181,5 +293,54 @@
             android:layout_marginBottom="10dp" />
 
     </LinearLayout>
+
+
+
+
+
+    <LinearLayout
+        android:id="@+id/ll_history"
+        android:visibility="gone"
+        android:layout_alignParentBottom="true"
+        android:background="@color/gray"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:paddingTop="10dp">
+
+
+
+
+        <include
+            android:id="@+id/ic_header"
+            layout="@layout/text_item"
+            />
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_epc_data"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:scrollbars="vertical"/>
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="10dp"
+            android:layout_marginBottom="10dp" />
+
+        <Button
+            android:id="@+id/btn_close_record"
+            android:background="@color/cron"
+            android:textSize="18dp"
+            android:text="关闭"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"/>
+
+
+
+
+
+    </LinearLayout>
+
+
+
 
 </RelativeLayout>

@@ -48,19 +48,19 @@ public class MyRVAdapter extends RecyclerView.Adapter<MyRVAdapter.MyTVHolder> {
         holder.mEpcView.setText(map.get(Constants.RV_HEAD_EPC));
 
         String boxState = map.get(Constants.RV_HEAD_BOX_STATE);
-        if ("放置正确拖车".equals(boxState)){
+        if (mContext.getResources().getString(R.string.predict_box_lay_right).equals(boxState)){
             holder.mStateView.setTextColor(Color.GREEN);
         }
-        else if("放置错误拖车".equals(boxState)) {
+        else if(mContext.getResources().getString(R.string.predict_box_lay_wrong).equals(boxState)) {
             holder.mStateView.setTextColor(Color.RED);
         }
-        else if("非法搬运".equals(boxState)) {
+        else if(mContext.getResources().getString(R.string.predict_box_ban).equals(boxState)) {
             holder.mStateView.setTextColor(Color.RED);
         }
-        else if("携带至正确拖车".equals(boxState)) {
+        else if(mContext.getResources().getString(R.string.predict_box_carry_right).equals(boxState)) {
             holder.mStateView.setTextColor(Color.BLUE);
         }
-        else if("携带至错误拖车".equals(boxState)) {
+        else if(mContext.getResources().getString(R.string.predict_box_carry_wrong).equals(boxState)) {
             holder.mStateView.setTextColor(mContext.getColor(R.color.orange));
         }
         else {
