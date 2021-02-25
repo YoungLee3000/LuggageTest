@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Vibrator;
 import android.view.View;
 import android.widget.Button;
 import android.widget.RadioButton;
@@ -86,8 +87,6 @@ public class EntryActivity extends AppCompatActivity {
     private String fileName_3 = "flight_data_3.json";
     private String fileName_3_1 = "flight_data_3_1.json";
     private String fileName_4 = "flight_data_4.json";
-
-
 
 
     @Override

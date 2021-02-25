@@ -642,6 +642,7 @@ public class MainActivity extends AppCompatActivity {
     private SoundPool soundPool2;
     private Vibrator mVibrator;
     private long[] mPattern = {0,500};
+    private long[] mPatternLong = {0,500,50,500,50,500};
 
     //初始化测试用例
     private void initData(){
@@ -730,10 +731,11 @@ public class MainActivity extends AppCompatActivity {
         float volumnRatio = audioCurrentVolumn/audioMaxVolumn;
 
         if (ifLoop){
-            mVibrator.vibrate(mPattern,-1);
+            mVibrator.vibrate(mPatternLong,-1);
             return soundPool.play(1, volumnRatio, volumnRatio, 0, -1, 1);
         }
         else{
+            mVibrator.vibrate(mPattern,-1);
             return soundPool2.play(1, volumnRatio, volumnRatio, 0, 0, 1);
         }
 
