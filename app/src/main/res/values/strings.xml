@@ -8,6 +8,7 @@
     <string name="predict_box_lay_right">放置正确</string>
     <string name="predict_box_lay_wrong">放置错误</string>
     <string name="predict_box_ban">错误出入舱</string>
+    <string name="predict_box_access">正确出入舱</string>
     <string name="predict_box_lack">缺失的行李</string>
 
     <string name="case_1">场景1</string>

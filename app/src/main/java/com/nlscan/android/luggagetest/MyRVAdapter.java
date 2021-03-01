@@ -51,6 +51,9 @@ public class MyRVAdapter extends RecyclerView.Adapter<MyRVAdapter.MyTVHolder> {
         if (mContext.getResources().getString(R.string.predict_box_lay_right).equals(boxState)){
             holder.mStateView.setTextColor(Color.GREEN);
         }
+        else if (mContext.getResources().getString(R.string.predict_box_access).equals(boxState)){
+            holder.mStateView.setTextColor(Color.GREEN);
+        }
         else if(mContext.getResources().getString(R.string.predict_box_lay_wrong).equals(boxState)) {
             holder.mStateView.setTextColor(Color.RED);
         }

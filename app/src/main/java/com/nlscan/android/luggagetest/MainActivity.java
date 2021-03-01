@@ -130,8 +130,13 @@ public class MainActivity extends AppCompatActivity {
                             break;
                         case ResultState.PREDICT_BOX_BAN:
                             stateParse = getResources().getString(R.string.predict_box_ban);
-                            hugState = getResources().getString(R.string.predict_box_ban);
+                            hugState = getResources().getString(R.string.wrong);
                             wrongNotify();
+                            break;
+                        case ResultState.PREDICT_BOX_ACCESS:
+                            stateParse = getResources().getString(R.string.predict_box_access);
+                            hugState = getResources().getString(R.string.right);
+                            performSound(false);
                             break;
                         case ResultState.PREDICT_BOX_LACK:
                             stateParse = getResources().getString(R.string.predict_box_lack);
