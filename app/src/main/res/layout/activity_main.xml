@@ -102,6 +102,7 @@
                 android:layout_marginTop="5dp"
                 android:orientation="horizontal">
 
+
                 <Button
                     android:id="@+id/btn_start_service"
                     android:layout_width="0dp"
@@ -109,18 +110,18 @@
                     android:layout_weight="1"
                     android:background="@drawable/set_btn"
                     android:enabled="false"
-                    android:textSize="18dp"
+                    android:textSize="16dp"
                     android:text="开启检测" />
 
                 <Button
                     android:id="@+id/btn_end_service"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginLeft="10dp"
+                    android:layout_marginLeft="5dp"
                     android:layout_weight="1"
                     android:background="@drawable/set_btn"
                     android:enabled="false"
-                    android:textSize="18dp"
+                    android:textSize="16dp"
                     android:text="结束检测" />
 
 
@@ -128,22 +129,36 @@
                     android:id="@+id/btn_new_car_done"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginLeft="10dp"
                     android:layout_weight="1"
+                    android:layout_marginLeft="5dp"
                     android:background="@drawable/set_btn"
                     android:enabled="false"
-                    android:textSize="18dp"
+                    android:textSize="16dp"
                     android:text="设置拖车" />
+
+
+                <Button
+                    android:id="@+id/btn_add_lack"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginLeft="5dp"
+                    android:background="@drawable/set_btn"
+                    android:enabled="false"
+                    android:textSize="16dp"
+                    android:text="补签" />
+
+
 
                 <Button
                     android:id="@+id/btn_show_record"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginLeft="10dp"
+                    android:layout_marginLeft="5dp"
                     android:layout_weight="1"
-                    android:textSize="18dp"
+                    android:textSize="16dp"
                     android:background="@drawable/set_btn"
-                    android:text="标签记录" />
+                    android:text="记录" />
 
 
             </LinearLayout>
@@ -153,6 +168,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/car_tips" />
+
+
 
 
         </LinearLayout>

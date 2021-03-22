@@ -1,5 +1,6 @@
 package com.nlscan.android.luggagetest;
 
+import androidx.annotation.UiThread;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -8,10 +9,13 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.bluetooth.BluetoothDevice;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.graphics.Color;
 import android.media.AudioManager;
@@ -46,6 +50,7 @@ import com.nlscan.luggage.ModelInterface;
 import com.nlscan.luggage.ParamValue;
 import com.nlscan.luggage.ResultState;
 
+import java.lang.annotation.Annotation;
 import java.lang.ref.SoftReference;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -127,6 +132,12 @@ public class MainActivity extends AppCompatActivity {
                         case ResultState.PREDICT_BOX_LAY_WRONG:
                             stateParse = getResources().getString(R.string.predict_box_lay_wrong);
                             layState = getResources().getString(R.string.wrong);
+                            MainActivity.this.runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    showDialog("确认数据","是否将确认将该行李放置此处?", Color.RED,epc_id);
+                                }
+                            });
                             break;
                         case ResultState.PREDICT_BOX_BAN:
                             stateParse = getResources().getString(R.string.predict_box_ban);
@@ -234,10 +245,14 @@ public class MainActivity extends AppCompatActivity {
 
 
     //初始化服务
-
     private LuggageManager gLuggageInstance;
     private void initService(){
 
+        //设置扫码配置
+        barcodeSet();
+
+
+        //获取服务实例
         gLuggageInstance = LuggageManager.getInstance(getApplicationContext());
 
         interfaceServiceInit();
@@ -283,9 +298,23 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
         endService();
 
+    }
 
 
+    //暂停时销毁广播
+    @Override
+    protected void onPause() {
+        super.onPause();
 
+        unRegister();
+    }
+
+
+    //刷新界面时注册广播
+    @Override
+    protected void onPostResume() {
+        super.onPostResume();
+        register();
 
     }
 
@@ -294,7 +323,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_BACK) {
-            showDialog("是否清除所有数据", Color.RED);
+            showDialog("清除数据","是否清除所有数据", Color.RED);
         }
 
         return false;
@@ -309,9 +338,11 @@ public class MainActivity extends AppCompatActivity {
      * 显示弹出窗
      * @param meg
      */
-    private void showDialog(String meg,int colorID){
+    private void showDialog(String title,String meg,int colorID){
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        if (gAlertDialog != null) gAlertDialog.dismiss();
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
         builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
@@ -327,9 +358,61 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        setTitle(builder,title,meg,colorID);
+    }
+
+
+
+
+
+
+
+    /**
+     * 搬运错误的时候弹窗
+     * @param meg
+     */
+    private void showDialog(String title,String meg,int colorID,String epcId){
+        if (gAlertDialog != null) gAlertDialog.dismiss();
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+
+        JSONObject actionObject = new JSONObject();
+        actionObject.put(DataKey.J_EPC_ID,epcId);
+
+
+        builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+
+                actionObject.put(DataKey.J_CONFIRM,ParamValue.CONFIRM_RIGHT);
+                sendConfirmData(actionObject,epcId);
+                gAlertDialog.dismiss();
+
+            }
+        });
+        builder.setNegativeButton("取消", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                actionObject.put(DataKey.J_CONFIRM,ParamValue.CONFIRM_RIGHT);
+                sendConfirmData(actionObject,epcId);
+                gAlertDialog.dismiss();
+            }
+        });
+
+
+        setTitle(builder,title,meg,colorID);
+
+
+
+
+    }
+
+
+    //设置标题与消息内容
+    private void setTitle(AlertDialog.Builder builder, String title,String meg, int color){
         gAlertDialog = builder.create();
 
-        gAlertDialog.setTitle("清除数据");
+        gAlertDialog.setTitle(title);
 
         gAlertDialog.setMessage(meg);
         gAlertDialog.show();
@@ -341,7 +424,7 @@ public class MainActivity extends AppCompatActivity {
             Field mMessage = mAlertController.getClass().getDeclaredField("mMessageView");
             mMessage.setAccessible(true);
             TextView mMessageView = (TextView) mMessage.get(mAlertController);
-            mMessageView.setTextColor(colorID);
+            mMessageView.setTextColor(color);
             mMessageView.setTextSize(25);
             mMessageView.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
         } catch (IllegalAccessException e) {
@@ -349,10 +432,22 @@ public class MainActivity extends AppCompatActivity {
         } catch (NoSuchFieldException e) {
             e.printStackTrace();
         }
-
-
-
     }
+
+
+    //发送行为数据
+    private void sendConfirmData(JSONObject actionObject,String epcId){
+        JSONArray actionArray = new JSONArray();
+        actionArray.add(actionObject);
+        String strData = actionArray.toString();
+        int rel = gLuggageInstance.sendInfo(ParamValue.DATA_CONFIRM,strData);
+        tvRunResult.setText("发送确认数据 "  + epcId + (rel==ResultState.SUCCESS ? "成功" : "失败"));
+    }
+
+
+
+
+
 
 
     //*-------------服务连接相关-------------------------//
@@ -391,6 +486,9 @@ public class MainActivity extends AppCompatActivity {
 
     @BindView(R.id.btn_close_record)
     Button btnCloseRecord;
+
+    @BindView(R.id.btn_add_lack)
+    Button btnAddLack;
 
 
     @BindView(R.id.tv_car_id_set)
@@ -431,7 +529,8 @@ public class MainActivity extends AppCompatActivity {
 
     //按键事件
     @OnClick({R.id.btn_start_service,R.id.btn_new_car_done,
-                R.id.btn_end_service,R.id.btn_show_record,R.id.btn_close_record})
+                R.id.btn_end_service,R.id.btn_show_record,R.id.btn_close_record,
+                R.id.btn_add_lack})
     public void onClick(View view) {
         switch (view.getId()) {
 
@@ -457,6 +556,9 @@ public class MainActivity extends AppCompatActivity {
                 break;
             case R.id.btn_close_record:
                 layoutHistory.setVisibility(View.GONE);
+                break;
+            case R.id.btn_add_lack:
+                addLack();
                 break;
         }
     }
@@ -626,6 +728,79 @@ public class MainActivity extends AppCompatActivity {
         tvRunResult.setText("结束服务结果: " +  ( rel == ResultState.SUCCESS ? "成功" : "失败") );
 
 
+    }
+
+
+    //发送扫码广播
+    private void addLack(){
+        //普通广播
+        Intent intent1 = new Intent("nlscan.action.SCANNER_TRIG");
+        intent1.putExtra("SCAN_TIMEOUT", 6);//单位为秒，值为int类型，且不超过9秒
+        sendBroadcast(intent1);//content.
+    }
+
+
+    //扫码接收广播
+    private BroadcastReceiver mScanReceiver = new BroadcastReceiver(){
+        @Override
+        public void onReceive(Context context, Intent intent) {
+
+            final String scanResult_1=intent.getStringExtra("SCAN_BARCODE1");
+            final String scanStatus=intent.getStringExtra("SCAN_STATE");
+
+            if("ok".equals(scanStatus)){
+
+                sendAddLackAction(scanResult_1);
+            }
+
+        }
+    };
+
+
+    //发送补签行为数据
+    private void sendAddLackAction(String epcId){
+        JSONObject actionObject = new JSONObject();
+
+        actionObject.put(DataKey.J_EPC_ID,epcId);
+
+        JSONArray actionArray = new JSONArray();
+        actionArray.add(actionObject);
+
+        String strData = actionArray.toString();
+
+        int rel = gLuggageInstance.sendInfo(ParamValue.DATA_ADD_LACK,strData);
+
+        tvRunResult.setText("发送补签数据 "  + epcId + (rel==ResultState.SUCCESS ? "成功" : "失败"));
+    }
+
+
+    //注册广播
+    private void register(){
+
+        //扫码广播
+        IntentFilter scanFilter = new IntentFilter("nlscan.action.SCANNER_RESULT");
+        registerReceiver(mScanReceiver,scanFilter);
+
+    }
+
+
+    //取消注册
+    private void unRegister(){
+        try {
+
+            unregisterReceiver(mScanReceiver);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    //设置扫码配置
+    private void barcodeSet(){
+        Intent intentConfig = new Intent("ACTION_BAR_SCANCFG");
+        intentConfig.putExtra("EXTRA_SCAN_MODE", 3);//广播输出
+        intentConfig.putExtra("EXTRA_OUTPUT_EDITOR_ACTION_ENABLE", 0);//不输出软键盘
+        sendBroadcast(intentConfig);
     }
 
 
@@ -858,6 +1033,7 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 case CLICK_START:
                     mainActivity.btnNewCarDone.setEnabled(true);
+                    mainActivity.btnAddLack.setEnabled(true);
                     mainActivity.btnStartService.performClick();
                     break;
             }
