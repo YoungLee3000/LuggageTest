@@ -255,7 +255,16 @@ public class MainActivity extends AppCompatActivity {
         //获取服务实例
         gLuggageInstance = LuggageManager.getInstance(getApplicationContext());
 
+
         interfaceServiceInit();
+
+
+
+
+
+
+
+
 
     }
 
@@ -283,11 +292,26 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         ButterKnife.bind(this);
-        showLoadingWindow("服务开启中...");
+
+
+
+
 
         initData();
         initView();
-        initService();
+
+        showLoadingWindow("服务开启中...");
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                initService();
+            }
+        }).start();
+
+
+
+
 
 
     }
@@ -570,11 +594,20 @@ public class MainActivity extends AppCompatActivity {
 
         int rel = gLuggageInstance.initService();
 
+//        if (rel == ResultState.FAIL){
+//            try {
+//                Thread.sleep(500);
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
+//            rel = gLuggageInstance.initService();
+//        }
 
-        tvRunResult.setText("初始化结果" + ( rel == ResultState.SUCCESS ? "成功" : "失败"));
+
+//        tvRunResult.setText("初始化结果" + ( rel == ResultState.SUCCESS ? "成功" : "失败"));
 
         Message toastMeg = Message.obtain();
-        toastMeg.obj = "初始化结果" + ( rel == ResultState.SUCCESS ? "成功" : "失败");
+        toastMeg.obj = "4次初始化结果" + ( rel == ResultState.SUCCESS ? "成功" : "失败");
         toastMeg.what = LOAD_SUCCESS;
         gHandler.sendMessage(toastMeg);
 
