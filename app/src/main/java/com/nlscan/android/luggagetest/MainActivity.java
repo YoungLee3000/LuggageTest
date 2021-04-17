@@ -116,7 +116,7 @@ public class MainActivity extends AppCompatActivity {
                             break;
                         case ResultState.PREDICT_BOX_CARRY_RIGHT:
                             stateParse = getResources().getString(R.string.predict_box_carry_right);
-                            performSound(false);
+                            performSound(2);
                             hugState = getResources().getString(R.string.right);
 
                             break;
@@ -128,6 +128,8 @@ public class MainActivity extends AppCompatActivity {
                         case ResultState.PREDICT_BOX_LAY_RIGHT:
                             stateParse = getResources().getString(R.string.predict_box_lay_right);
                             layState = getResources().getString(R.string.right);
+                            performSound(3);
+
                             break;
                         case ResultState.PREDICT_BOX_LAY_WRONG:
                             stateParse = getResources().getString(R.string.predict_box_lay_wrong);
@@ -147,12 +149,12 @@ public class MainActivity extends AppCompatActivity {
                         case ResultState.PREDICT_BOX_ACCESS:
                             stateParse = getResources().getString(R.string.predict_box_access);
                             hugState = getResources().getString(R.string.right);
-                            performSound(false);
+                            performSound(2);
                             break;
                         case ResultState.PREDICT_BOX_LACK:
                             stateParse = getResources().getString(R.string.predict_box_lack);
                             hugState = getResources().getString(R.string.predict_box_lack);
-                            performSound(false);
+                            performSound(2);
                             break;
                     }
                     if ("".equals(stateParse)) continue;
@@ -232,7 +234,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     private void wrongNotify(){
-        final int playId =    performSound(true);
+        final int playId =    performSound(1);
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
@@ -583,6 +585,7 @@ public class MainActivity extends AppCompatActivity {
                 break;
             case R.id.btn_add_lack:
                 addLack();
+//                performSound(false);
                 break;
         }
     }
@@ -853,6 +856,7 @@ public class MainActivity extends AppCompatActivity {
 
     private SoundPool soundPool;
     private SoundPool soundPool2;
+    private SoundPool soundPool3;
     private Vibrator mVibrator;
     private long[] mPattern = {0,500};
     private long[] mPatternLong = {0,500,50,500,50,500};
@@ -921,7 +925,12 @@ public class MainActivity extends AppCompatActivity {
 
         //初始化蜂鸣器2
         soundPool2 = new SoundPool(10, AudioManager.STREAM_RING, 5);
-        soundPool2.load(this, R.raw.beep, 1);
+        soundPool2.load(this, R.raw.beep91, 1);
+
+
+        //初始化蜂鸣器2
+        soundPool3 = new SoundPool(10, AudioManager.STREAM_RING, 5);
+        soundPool3.load(this, R.raw.beep, 1);
 
 
         //初始化振动
@@ -934,7 +943,7 @@ public class MainActivity extends AppCompatActivity {
     /**
      * 发出警报
      */
-    private int performSound(boolean ifLoop){
+    private int performSound(int type){
         AudioManager am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         // 获取最大音量值
         float audioMaxVolumn = am.getStreamMaxVolume(AudioManager.STREAM_RING);
@@ -943,13 +952,20 @@ public class MainActivity extends AppCompatActivity {
         //最终影响音量
         float volumnRatio = audioCurrentVolumn/audioMaxVolumn;
 
-        if (ifLoop){
+        if (type == 1){
             mVibrator.vibrate(mPatternLong,-1);
             return soundPool.play(1, volumnRatio, volumnRatio, 0, -1, 1);
         }
-        else{
+        else if (type == 2){
             mVibrator.vibrate(mPattern,-1);
-            return soundPool2.play(1, volumnRatio, volumnRatio, 0, 0, 1);
+            return soundPool2.play(1, 1.0f, 1.0f, 0, 0, 1.3f);
+        }
+        else if (type == 3){
+            mVibrator.vibrate(mPattern,-1);
+            return soundPool3.play(1, 1.0f, 1.0f, 0, 0, 1);
+        }
+        else{
+            return 0;
         }
 
 

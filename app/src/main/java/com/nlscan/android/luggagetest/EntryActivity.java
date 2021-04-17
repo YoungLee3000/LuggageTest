@@ -5,6 +5,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.media.AudioManager;
+import android.media.SoundPool;
 import android.os.Bundle;
 import android.os.Vibrator;
 import android.view.View;
@@ -101,7 +103,6 @@ public class EntryActivity extends AppCompatActivity {
         setContentView(R.layout.activity_entry);
         ButterKnife.bind(this);
         initFile();
-
 
         rg_case.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
