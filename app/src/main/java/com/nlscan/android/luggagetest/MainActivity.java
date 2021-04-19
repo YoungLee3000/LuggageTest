@@ -27,6 +27,7 @@ import android.os.Message;
 import android.os.RemoteException;
 import android.os.Vibrator;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -119,6 +120,21 @@ public class MainActivity extends AppCompatActivity {
                             performSound(2);
                             hugState = getResources().getString(R.string.right);
 
+                            if ("AB1000".equals(box_id)){
+                                performSound(4);
+                            }
+                            else if ("AB2000".equals(box_id)){
+                                performSound(5);
+                            }
+
+                            MainActivity.this.runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    showDialog("确认搬运","是否将确认搬运" +  ("AB1000".equals(box_id) ? "北京" : "上海")
+                                            + "航班的行李?", Color.RED,box_id,ParamValue.CONFIRM_CANCEL);
+                                }
+                            });
+
                             break;
                         case ResultState.PREDICT_BOX_CARRY_WRONG:
                             stateParse = getResources().getString(R.string.predict_box_carry_wrong);
@@ -126,6 +142,7 @@ public class MainActivity extends AppCompatActivity {
                             hugState = getResources().getString(R.string.wrong);
                             break;
                         case ResultState.PREDICT_BOX_LAY_RIGHT:
+                            if(gAlertDialog!=null) gAlertDialog.dismiss();
                             stateParse = getResources().getString(R.string.predict_box_lay_right);
                             layState = getResources().getString(R.string.right);
                             performSound(3);
@@ -137,7 +154,8 @@ public class MainActivity extends AppCompatActivity {
                             MainActivity.this.runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    showDialog("确认数据","是否将确认将该行李放置此处?", Color.RED,epc_id);
+                                    showDialog("确认数据","是否将确认将该行李放置此处?",
+                                            Color.RED,box_id,ParamValue.CONFIRM_WRONG);
                                 }
                             });
                             break;
@@ -394,16 +412,16 @@ public class MainActivity extends AppCompatActivity {
 
 
     /**
-     * 搬运错误的时候弹窗
+     * 搬运错误或者携带正确的时候弹窗,
      * @param meg
      */
-    private void showDialog(String title,String meg,int colorID,String epcId){
+    private void showDialog(String title,String meg,int colorID,String boxId, String negValue){
         if (gAlertDialog != null) gAlertDialog.dismiss();
 
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
 
         JSONObject actionObject = new JSONObject();
-        actionObject.put(DataKey.J_EPC_ID,epcId);
+        actionObject.put(DataKey.J_BOX_ID,boxId);
 
 
         builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
@@ -411,7 +429,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(DialogInterface dialogInterface, int i) {
 
                 actionObject.put(DataKey.J_CONFIRM,ParamValue.CONFIRM_RIGHT);
-                sendConfirmData(actionObject,epcId);
+                sendConfirmData(actionObject,boxId);
                 gAlertDialog.dismiss();
 
             }
@@ -419,8 +437,8 @@ public class MainActivity extends AppCompatActivity {
         builder.setNegativeButton("取消", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                actionObject.put(DataKey.J_CONFIRM,ParamValue.CONFIRM_RIGHT);
-                sendConfirmData(actionObject,epcId);
+                actionObject.put(DataKey.J_CONFIRM,negValue);
+                sendConfirmData(actionObject,boxId);
                 gAlertDialog.dismiss();
             }
         });
@@ -442,11 +460,45 @@ public class MainActivity extends AppCompatActivity {
 
         gAlertDialog.setMessage(meg);
         gAlertDialog.show();
+        gAlertDialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
 
         try {
             Field mAlert = AlertDialog.class.getDeclaredField("mAlert");
             mAlert.setAccessible(true);
             Object mAlertController = mAlert.get(gAlertDialog);
+
+
+            //获取mButton并设置大小颜色----------------
+            Field mPos = mAlertController.getClass().getDeclaredField("mButtonPositive");
+            mPos.setAccessible(true);
+            Button mButtonPos = (Button) mPos.get(mAlertController);
+            mButtonPos.setTextSize(25);
+
+            LinearLayout.LayoutParams posBtnPara = (LinearLayout.LayoutParams) mButtonPos.getLayoutParams();
+//            posBtnPara.height = LinearLayout.LayoutParams.WRAP_CONTENT;
+//            posBtnPara.width = LinearLayout.LayoutParams.MATCH_PARENT;
+//            posBtnPara.gravity = Gravity.CENTER;
+            posBtnPara.setMargins(0, 100, 50, 20);
+            mButtonPos.setLayoutParams(posBtnPara);
+
+
+            //获取mButton并设置大小颜色-------------
+            Field mNeg = mAlertController.getClass().getDeclaredField("mButtonNegative");
+            mNeg.setAccessible(true);
+            Button mButtonNeg = (Button) mNeg.get(mAlertController);
+            mButtonNeg.setTextSize(25);
+
+            LinearLayout.LayoutParams cancelBtnPara = (LinearLayout.LayoutParams) mButtonNeg.getLayoutParams();
+//            cancelBtnPara.height = LinearLayout.LayoutParams.WRAP_CONTENT;
+//            cancelBtnPara.width = LinearLayout.LayoutParams.MATCH_PARENT;
+//            cancelBtnPara.gravity = Gravity.CENTER;
+            cancelBtnPara.setMargins(0, 100, 200, 20);
+            mButtonNeg.setLayoutParams(cancelBtnPara);
+
+
+
+
+            //设置消息的字体大小
             Field mMessage = mAlertController.getClass().getDeclaredField("mMessageView");
             mMessage.setAccessible(true);
             TextView mMessageView = (TextView) mMessage.get(mAlertController);
@@ -794,10 +846,10 @@ public class MainActivity extends AppCompatActivity {
 
 
     //发送补签行为数据
-    private void sendAddLackAction(String epcId){
+    private void sendAddLackAction(String boxId){
         JSONObject actionObject = new JSONObject();
 
-        actionObject.put(DataKey.J_EPC_ID,epcId);
+        actionObject.put(DataKey.J_BOX_ID,boxId);
 
         JSONArray actionArray = new JSONArray();
         actionArray.add(actionObject);
@@ -806,7 +858,7 @@ public class MainActivity extends AppCompatActivity {
 
         int rel = gLuggageInstance.sendInfo(ParamValue.DATA_ADD_LACK,strData);
 
-        tvRunResult.setText("发送补签数据 "  + epcId + (rel==ResultState.SUCCESS ? "成功" : "失败"));
+        tvRunResult.setText("发送补签数据 "  + boxId + (rel==ResultState.SUCCESS ? "成功" : "失败"));
     }
 
 
@@ -857,6 +909,8 @@ public class MainActivity extends AppCompatActivity {
     private SoundPool soundPool;
     private SoundPool soundPool2;
     private SoundPool soundPool3;
+    private SoundPool soundPool4;
+    private SoundPool soundPool5;
     private Vibrator mVibrator;
     private long[] mPattern = {0,500};
     private long[] mPatternLong = {0,500,50,500,50,500};
@@ -928,9 +982,18 @@ public class MainActivity extends AppCompatActivity {
         soundPool2.load(this, R.raw.beep91, 1);
 
 
-        //初始化蜂鸣器2
+        //初始化蜂鸣器3
         soundPool3 = new SoundPool(10, AudioManager.STREAM_RING, 5);
         soundPool3.load(this, R.raw.beep, 1);
+
+
+        //初始化蜂鸣器4
+        soundPool4 = new SoundPool(10, AudioManager.STREAM_RING, 5);
+        soundPool4.load(this, R.raw.beijing, 1);
+
+        //初始化蜂鸣器5
+        soundPool5 = new SoundPool(10, AudioManager.STREAM_RING, 5);
+        soundPool5.load(this, R.raw.shanghai, 1);
 
 
         //初始化振动
@@ -963,6 +1026,14 @@ public class MainActivity extends AppCompatActivity {
         else if (type == 3){
             mVibrator.vibrate(mPattern,-1);
             return soundPool3.play(1, 1.0f, 1.0f, 0, 0, 1);
+        }
+        else if (type == 4){
+            mVibrator.vibrate(mPattern,-1);
+            return soundPool4.play(1, 1.0f, 1.0f, 0, 0, 1);
+        }
+        else if (type == 5){
+            mVibrator.vibrate(mPattern,-1);
+            return soundPool5.play(1, 1.0f, 1.0f, 0, 0, 1);
         }
         else{
             return 0;
