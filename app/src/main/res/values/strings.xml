@@ -30,6 +30,7 @@
 
     <string name="sure">确定</string>
     <string name="cancel">取消</string>
+    <string name="cancel_hug">取消搬运</string>
 
 
     <string name="car_tips">请在完成第一个行李的搬运时,点击“设置拖车”按钮设置拖车号。</string>

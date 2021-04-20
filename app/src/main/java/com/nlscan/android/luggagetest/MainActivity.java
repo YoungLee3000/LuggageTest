@@ -89,6 +89,7 @@ public class MainActivity extends AppCompatActivity {
                     Map<String,String> map = new HashMap<>();
                     String current_case = ValueUtil.TextGet(relObj.getString(DataKey.J_CASE));
                     if (!current_case.equals(mCase)) continue;
+                    String flight_id = ValueUtil.TextGet(relObj.getString(DataKey.J_FLIGHT_ID));
                     String box_id = ValueUtil.TextGet(relObj.getString(DataKey.J_BOX_ID)) ;
                     String epc_id =  ValueUtil.TextGet(relObj.getString(DataKey.J_EPC_ID)) ;
                     String box_state = ValueUtil.TextGet(relObj.getString(DataKey.J_PREDICT_BOX_STATE)) ;
@@ -117,28 +118,27 @@ public class MainActivity extends AppCompatActivity {
                             break;
                         case ResultState.PREDICT_BOX_CARRY_RIGHT:
                             stateParse = getResources().getString(R.string.predict_box_carry_right);
-                            performSound(2);
+//                            performSound(2);
                             hugState = getResources().getString(R.string.right);
 
-                            if ("AB1000".equals(box_id)){
+                            if ("AB1000".equals(flight_id)){
                                 performSound(4);
                             }
-                            else if ("AB2000".equals(box_id)){
+                            else if ("AB2000".equals(flight_id)){
                                 performSound(5);
                             }
 
                             MainActivity.this.runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    showDialog("确认搬运","是否将确认搬运" +  ("AB1000".equals(box_id) ? "北京" : "上海")
-                                            + "航班的行李?", Color.RED,box_id,ParamValue.CONFIRM_CANCEL);
+                                    showDialog("",  ("AB1000".equals(flight_id) ? "北京     " + flight_id  : "上海    " + flight_id ),"取消 搬运", box_id,ParamValue.CONFIRM_CANCEL,false);
                                 }
                             });
 
                             break;
                         case ResultState.PREDICT_BOX_CARRY_WRONG:
                             stateParse = getResources().getString(R.string.predict_box_carry_wrong);
-                            wrongNotify();
+
                             hugState = getResources().getString(R.string.wrong);
                             break;
                         case ResultState.PREDICT_BOX_LAY_RIGHT:
@@ -151,11 +151,11 @@ public class MainActivity extends AppCompatActivity {
                         case ResultState.PREDICT_BOX_LAY_WRONG:
                             stateParse = getResources().getString(R.string.predict_box_lay_wrong);
                             layState = getResources().getString(R.string.wrong);
+                            wrongNotify();
                             MainActivity.this.runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    showDialog("确认数据","是否将确认将该行李放置此处?",
-                                            Color.RED,box_id,ParamValue.CONFIRM_WRONG);
+                                    showDialog("确认数据","将行李放置此处?","取消",  box_id,ParamValue.CONFIRM_WRONG,true);
                                 }
                             });
                             break;
@@ -367,7 +367,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_BACK) {
-            showDialog("清除数据","是否清除所有数据", Color.RED);
+            showDialog("清除数据","是否清除数据", Color.RED);
         }
 
         return false;
@@ -377,7 +377,8 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-    AlertDialog gAlertDialog;
+//    AlertDialog gAlertDialog;
+    CustomTextDialog gAlertDialog;
     /**
      * 显示弹出窗
      * @param meg
@@ -386,23 +387,32 @@ public class MainActivity extends AppCompatActivity {
 
         if (gAlertDialog != null) gAlertDialog.dismiss();
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-        builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+
+
+        gAlertDialog = new CustomTextDialog(this);
+        gAlertDialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT);
+
+        gAlertDialog.setTile(title);
+        gAlertDialog.setMessage(meg);
+        gAlertDialog.setOnSureListener(new View.OnClickListener() {
             @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
+            public void onClick(View v) {
                 clearAll();
                 gAlertDialog.dismiss();
                 MainActivity.this.finish();
             }
         });
-        builder.setNegativeButton("取消", new DialogInterface.OnClickListener() {
+        gAlertDialog.setOnCanlceListener(new View.OnClickListener() {
             @Override
-            public void onClick(DialogInterface dialog, int which) {
+            public void onClick(View v) {
                 MainActivity.this.finish();
             }
         });
+//        gAlertDialog.setTile("请输入拖车号");
+        gAlertDialog.show();
 
-        setTitle(builder,title,meg,colorID);
+
     }
 
 
@@ -415,36 +425,51 @@ public class MainActivity extends AppCompatActivity {
      * 搬运错误或者携带正确的时候弹窗,
      * @param meg
      */
-    private void showDialog(String title,String meg,int colorID,String boxId, String negValue){
+    private void showDialog(String title,String meg,String cancelText,String boxId, String negValue,boolean ifShowPos){
         if (gAlertDialog != null) gAlertDialog.dismiss();
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
 
         JSONObject actionObject = new JSONObject();
         actionObject.put(DataKey.J_BOX_ID,boxId);
 
+        gAlertDialog = new CustomTextDialog(this);
+        gAlertDialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT);
 
-        builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+        gAlertDialog.setTile(title);
+        gAlertDialog.setMessage(meg);
+        gAlertDialog.setButtonText(cancelText);
+
+        if (ifShowPos){
+            gAlertDialog.setOnSureListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    actionObject.put(DataKey.J_CONFIRM,ParamValue.CONFIRM_RIGHT);
+                    sendConfirmData(actionObject,boxId);
+                    gAlertDialog.dismiss();
+                }
+            });
+        }
+        else{
+            gAlertDialog.setButtonVisible(false);
+        }
+
+        gAlertDialog.setOnCanlceListener(new View.OnClickListener() {
             @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-
-                actionObject.put(DataKey.J_CONFIRM,ParamValue.CONFIRM_RIGHT);
-                sendConfirmData(actionObject,boxId);
-                gAlertDialog.dismiss();
-
-            }
-        });
-        builder.setNegativeButton("取消", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
+            public void onClick(View v) {
                 actionObject.put(DataKey.J_CONFIRM,negValue);
                 sendConfirmData(actionObject,boxId);
                 gAlertDialog.dismiss();
             }
         });
+//        gAlertDialog.setTile("请输入拖车号");
+        gAlertDialog.show();
 
 
-        setTitle(builder,title,meg,colorID);
+
+
+
+
 
 
 
@@ -453,64 +478,65 @@ public class MainActivity extends AppCompatActivity {
 
 
     //设置标题与消息内容
-    private void setTitle(AlertDialog.Builder builder, String title,String meg, int color){
-        gAlertDialog = builder.create();
-
-        gAlertDialog.setTitle(title);
-
-        gAlertDialog.setMessage(meg);
-        gAlertDialog.show();
-        gAlertDialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-
-        try {
-            Field mAlert = AlertDialog.class.getDeclaredField("mAlert");
-            mAlert.setAccessible(true);
-            Object mAlertController = mAlert.get(gAlertDialog);
-
-
-            //获取mButton并设置大小颜色----------------
-            Field mPos = mAlertController.getClass().getDeclaredField("mButtonPositive");
-            mPos.setAccessible(true);
-            Button mButtonPos = (Button) mPos.get(mAlertController);
-            mButtonPos.setTextSize(25);
-
-            LinearLayout.LayoutParams posBtnPara = (LinearLayout.LayoutParams) mButtonPos.getLayoutParams();
-//            posBtnPara.height = LinearLayout.LayoutParams.WRAP_CONTENT;
-//            posBtnPara.width = LinearLayout.LayoutParams.MATCH_PARENT;
-//            posBtnPara.gravity = Gravity.CENTER;
-            posBtnPara.setMargins(0, 100, 50, 20);
-            mButtonPos.setLayoutParams(posBtnPara);
-
-
-            //获取mButton并设置大小颜色-------------
-            Field mNeg = mAlertController.getClass().getDeclaredField("mButtonNegative");
-            mNeg.setAccessible(true);
-            Button mButtonNeg = (Button) mNeg.get(mAlertController);
-            mButtonNeg.setTextSize(25);
-
-            LinearLayout.LayoutParams cancelBtnPara = (LinearLayout.LayoutParams) mButtonNeg.getLayoutParams();
-//            cancelBtnPara.height = LinearLayout.LayoutParams.WRAP_CONTENT;
-//            cancelBtnPara.width = LinearLayout.LayoutParams.MATCH_PARENT;
-//            cancelBtnPara.gravity = Gravity.CENTER;
-            cancelBtnPara.setMargins(0, 100, 200, 20);
-            mButtonNeg.setLayoutParams(cancelBtnPara);
-
-
-
-
-            //设置消息的字体大小
-            Field mMessage = mAlertController.getClass().getDeclaredField("mMessageView");
-            mMessage.setAccessible(true);
-            TextView mMessageView = (TextView) mMessage.get(mAlertController);
-            mMessageView.setTextColor(color);
-            mMessageView.setTextSize(25);
-            mMessageView.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (NoSuchFieldException e) {
-            e.printStackTrace();
-        }
-    }
+//    private void setTitle(AlertDialog.Builder builder, String title,String meg, int color){
+//        gAlertDialog = builder.create();
+//
+//        gAlertDialog.setTitle(title);
+//
+//        gAlertDialog.setMessage(meg);
+//        gAlertDialog.show();
+//        gAlertDialog.getWindow().setGravity(Gravity.CENTER);
+//        gAlertDialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+//
+//        try {
+//            Field mAlert = AlertDialog.class.getDeclaredField("mAlert");
+//            mAlert.setAccessible(true);
+//            Object mAlertController = mAlert.get(gAlertDialog);
+//
+//
+//            //获取mButton并设置大小颜色----------------
+//            Field mPos = mAlertController.getClass().getDeclaredField("mButtonPositive");
+//            mPos.setAccessible(true);
+//            Button mButtonPos = (Button) mPos.get(mAlertController);
+//            mButtonPos.setTextSize(25);
+//
+//            LinearLayout.LayoutParams posBtnPara = (LinearLayout.LayoutParams) mButtonPos.getLayoutParams();
+////            posBtnPara.height = LinearLayout.LayoutParams.WRAP_CONTENT;
+////            posBtnPara.width = LinearLayout.LayoutParams.MATCH_PARENT;
+////            posBtnPara.gravity = Gravity.CENTER;
+//            posBtnPara.setMargins(0, 0, 50, 20);
+//            mButtonPos.setLayoutParams(posBtnPara);
+//
+//
+//            //获取mButton并设置大小颜色-------------
+//            Field mNeg = mAlertController.getClass().getDeclaredField("mButtonNegative");
+//            mNeg.setAccessible(true);
+//            Button mButtonNeg = (Button) mNeg.get(mAlertController);
+//            mButtonNeg.setTextSize(25);
+//
+//            LinearLayout.LayoutParams cancelBtnPara = (LinearLayout.LayoutParams) mButtonNeg.getLayoutParams();
+////            cancelBtnPara.height = LinearLayout.LayoutParams.WRAP_CONTENT;
+////            cancelBtnPara.width = LinearLayout.LayoutParams.MATCH_PARENT;
+////            cancelBtnPara.gravity = Gravity.CENTER;
+//            cancelBtnPara.setMargins(0, 0, 200, 20);
+//            mButtonNeg.setLayoutParams(cancelBtnPara);
+//
+//
+//
+//
+//            //设置消息的字体大小
+//            Field mMessage = mAlertController.getClass().getDeclaredField("mMessageView");
+//            mMessage.setAccessible(true);
+//            TextView mMessageView = (TextView) mMessage.get(mAlertController);
+//            mMessageView.setTextColor(color);
+//            mMessageView.setTextSize(25);
+//            mMessageView.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
+//        } catch (IllegalAccessException e) {
+//            e.printStackTrace();
+//        } catch (NoSuchFieldException e) {
+//            e.printStackTrace();
+//        }
+//    }
 
 
     //发送行为数据
@@ -778,8 +804,8 @@ public class MainActivity extends AppCompatActivity {
 
     //显示设置拖车号的对话框
     public void showDialog() {
-        final CustomEditTextDialog customDialog = new CustomEditTextDialog(this);
-        final EditText editText = (EditText) customDialog.getEditText();//方法在CustomDialog中实现
+        CustomEditTextDialog customDialog = new CustomEditTextDialog(this);
+        EditText editText = (EditText) customDialog.getEditText();//方法在CustomDialog中实现
         customDialog.setOnSureListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
