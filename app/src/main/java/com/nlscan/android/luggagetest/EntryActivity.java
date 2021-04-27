@@ -24,53 +24,29 @@ import java.io.InputStream;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
 
 public class EntryActivity extends AppCompatActivity {
 
 
 
-    @BindView(R.id.et_flight)
-    TextView et_flight;
+    @BindView(R.id.btn_case1)
+    Button btnCase1;
+
+    @BindView(R.id.btn_case2)
+    Button btnCase2;
+
+    @BindView(R.id.btn_case3)
+    Button btnCase3;
+
+    @BindView(R.id.btn_case3_1)
+    Button btnCase3_1;
+
+    @BindView(R.id.btn_case4)
+    Button btnCase4;
 
 
-    @BindView(R.id.et_st_name)
-    TextView et_st_name;
 
-
-
-    @BindView(R.id.btn_entry)
-    Button btn_entry;
-
-
-    @BindView(R.id.rg_case)
-    RadioGroup rg_case;
-
-    @BindView(R.id.rb_case_1)
-    RadioButton rb_case_1;
-
-    @BindView(R.id.rb_case_2)
-    RadioButton rb_case_2;
-
-    @BindView(R.id.rb_case_3)
-    RadioButton rb_case_3;
-
-    @BindView(R.id.rb_case_3_1)
-    RadioButton rb_case_3_1;
-
-    @BindView(R.id.rb_case_4)
-    RadioButton rb_case_4;
-
-    @BindView(R.id.rg_st_type)
-    RadioGroup rg_st_type;
-
-    @BindView(R.id.rb_start)
-    RadioButton rb_start;
-
-    @BindView(R.id.rb_middle)
-    RadioButton rb_middle;
-
-    @BindView(R.id.rb_dest)
-    RadioButton rb_dest;
 
     //登录信息保存
     private static final String TAG = "LuggageTest";
@@ -97,129 +73,60 @@ public class EntryActivity extends AppCompatActivity {
 
     }
 
+
+
+
+
+
+    //按键事件
+    @OnClick({R.id.btn_case1,R.id.btn_case2,R.id.btn_case3,R.id.btn_case3_1,R.id.btn_case4})
+    public void onClick(View view) {
+        switch (view.getId()) {
+
+            case R.id.btn_case1:
+                mCase = ParamValue.CASE_DEFAULT;
+                break;
+
+            case R.id.btn_case2:
+                mCase = ParamValue.CASE_CAR_TO_STORE;
+                break;
+            case R.id.btn_case3:
+                mCase = ParamValue.CASE_STORE_TO_CAR;
+
+                break;
+            case R.id.btn_case3_1:
+                mCase = ParamValue.CASE_STORE_SEARCH;
+
+                break;
+            case R.id.btn_case4:
+                mCase = ParamValue.CASE_CAR_TO_BAND;
+                break;
+
+        }
+        entry();
+    }
+
+
+    private void entry(){
+        Intent intent = new Intent(EntryActivity.this,MainActivity.class);
+
+        intent.putExtra(Constants.SP_KEY_FLIGHT,mFlight);
+        intent.putExtra(Constants.SP_KEY_STATION_NAME,mStationName);
+        intent.putExtra(Constants.SP_KEY_CASE,mCase);
+        intent.putExtra(Constants.SP_KEY_STATION_TYPE,mStationType);
+
+
+
+        startActivity(intent);
+    }
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_entry);
         ButterKnife.bind(this);
         initFile();
-
-        rg_case.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(RadioGroup group, int checkedId) {
-                switch (checkedId){
-                    case R.id.rb_case_1:
-                        mCase = ParamValue.CASE_DEFAULT;
-                        break;
-                    case R.id.rb_case_2:
-                        mCase = ParamValue.CASE_CAR_TO_STORE;
-                        break;
-                    case R.id.rb_case_3:
-                        mCase = ParamValue.CASE_STORE_TO_CAR;
-                        break;
-                    case R.id.rb_case_3_1:
-                        mCase = ParamValue.CASE_STORE_SEARCH;
-                        break;
-                    case R.id.rb_case_4:
-                        mCase = ParamValue.CASE_CAR_TO_BAND;
-                        break;
-                }
-            }
-        });
-
-        rg_st_type.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(RadioGroup group, int checkedId) {
-                switch (checkedId){
-                    case R.id.rb_start:
-                        mStationType = ParamValue.STATION_START;
-                        break;
-                    case R.id.rb_middle:
-                        mStationType = ParamValue.STATION_MIDDLE;
-                        break;
-                    case R.id.rb_dest:
-                        mStationType = ParamValue.STATION_DEST;
-                        break;
-                }
-            }
-        });
-
-
-        //获取存储的ip值
-        mSp = getSharedPreferences(Constants.SP_NAME, Context.MODE_PRIVATE);
-        mFlight = mSp.getString(Constants.SP_KEY_FLIGHT,"");
-        et_flight.setText(mFlight);
-
-        mStationName = mSp.getString(Constants.SP_KEY_STATION_NAME,"");
-        et_st_name.setText(mStationName);
-
-        mStationType = mSp.getString(Constants.SP_KEY_STATION_TYPE,"");
-        mCase = mSp.getString(Constants.SP_KEY_CASE,"");
-
-        switch (mStationType){
-            default:
-            case ParamValue.STATION_START:
-                rb_start.setChecked(true);
-                break;
-            case ParamValue.STATION_MIDDLE:
-                rb_middle.setChecked(true);
-                break;
-            case ParamValue.STATION_DEST:
-                rb_dest.setChecked(true);
-                break;
-        }
-
-        switch (mCase){
-            default:
-            case ParamValue.CASE_DEFAULT:
-                rb_case_1.setChecked(true);
-                break;
-            case ParamValue.CASE_CAR_TO_STORE:
-                rb_case_2.setChecked(true);
-                break;
-            case ParamValue.CASE_STORE_TO_CAR:
-                rb_case_3.setChecked(true);
-                break;
-            case ParamValue.CASE_STORE_SEARCH:
-                rb_case_3_1.setChecked(true);
-                break;
-            case ParamValue.CASE_CAR_TO_BAND:
-                rb_case_4.setChecked(true);
-                break;
-        }
-
-
-
-
-        btn_entry.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                Intent intent = new Intent(EntryActivity.this,MainActivity.class);
-
-
-                //存储登录信息
-                mFlight = et_flight.getText().toString();
-                mStationName = et_st_name.getText().toString();
-
-                SharedPreferences.Editor editor = mSp.edit();
-                editor.putString(Constants.SP_KEY_FLIGHT, mFlight);
-                editor.putString(Constants.SP_KEY_STATION_NAME,mStationName);
-                editor.putString(Constants.SP_KEY_CASE,mCase);
-                editor.putString(Constants.SP_KEY_STATION_TYPE,mStationType);
-                editor.apply();
-
-                intent.putExtra(Constants.SP_KEY_FLIGHT,mFlight);
-                intent.putExtra(Constants.SP_KEY_STATION_NAME,mStationName);
-                intent.putExtra(Constants.SP_KEY_CASE,mCase);
-                intent.putExtra(Constants.SP_KEY_STATION_TYPE,mStationType);
-
-
-
-                startActivity(intent);
-            }
-        });
-
 
 
     }

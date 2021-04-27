@@ -37,6 +37,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -128,12 +129,12 @@ public class MainActivity extends AppCompatActivity {
                                 performSound(5);
                             }
 
-                            MainActivity.this.runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    showDialog("",  ("AB1000".equals(flight_id) ? "北京     " + flight_id  : "上海    " + flight_id ),"取消 搬运", box_id,ParamValue.CONFIRM_CANCEL,false);
-                                }
-                            });
+//                            MainActivity.this.runOnUiThread(new Runnable() {
+//                                @Override
+//                                public void run() {
+//                                    showDialog("",  ("AB1000".equals(flight_id) ? "北京     " + flight_id  : "上海    " + flight_id ),"取消 搬运", box_id,ParamValue.CONFIRM_CANCEL,false);
+//                                }
+//                            });
 
                             break;
                         case ResultState.PREDICT_BOX_CARRY_WRONG:
@@ -152,12 +153,12 @@ public class MainActivity extends AppCompatActivity {
                             stateParse = getResources().getString(R.string.predict_box_lay_wrong);
                             layState = getResources().getString(R.string.wrong);
                             wrongNotify();
-                            MainActivity.this.runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    showDialog("确认数据","将行李放置此处?","取消",  box_id,ParamValue.CONFIRM_WRONG,true);
-                                }
-                            });
+//                            MainActivity.this.runOnUiThread(new Runnable() {
+//                                @Override
+//                                public void run() {
+//                                    showDialog("确认数据","将行李放置此处?","取消",  box_id,ParamValue.CONFIRM_WRONG,true);
+//                                }
+//                            });
                             break;
                         case ResultState.PREDICT_BOX_BAN:
                             stateParse = getResources().getString(R.string.predict_box_ban);
@@ -179,7 +180,7 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-                    mCurrentData = new ResultItems(epc_id,box_id,hugState,layState,car_id);
+                    mCurrentData = new ResultItems(epc_id,box_id,hugState,layState,car_id,flight_id);
 
                     gDataMap.put(epc_id,mCurrentData);
 
@@ -201,50 +202,114 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
+    private void hideView(){
+        btnTrue.setVisibility(View.GONE);
+        btnFalse.setVisibility(View.INVISIBLE);
+        tvHugResult.setVisibility(View.INVISIBLE);
+        tvMessage.setVisibility(View.INVISIBLE);
+        tvBoxId.setVisibility(View.INVISIBLE);
+
+        FlashHelper.getInstance().stopFlick(boardView2);
+        boardView2.setVisibility(View.INVISIBLE);
+    }
+
     //更新当前标签信息
     private void updateResultView(){
-        tvBoxAndEpc.setText( mCurrentData.getEpcId() );
-        tvInHugTip.setText("");
-        tvInHugState.setText("");
-        tvInLayTip.setText("");
-        tvInLayState.setText("");
+
+        hideView();
+
 
         String hugState = mCurrentData.getHugState();
         String layState = mCurrentData.getLayState();
-
-        if (!"".equals(hugState)){
-            tvInHugTip.setText(getString(R.string.in_hug));
-            tvInHugState.setText(hugState);
-
-            if (getString(R.string.right).equals(hugState)){
-                tvInHugState.setTextColor(getResources().getColor(R.color.green));
+        String flight_id = mCurrentData.getFlightId();
+        String boxId = mCurrentData.getBoxId();
+        String text = "AB1000".equals(flight_id) ? "北京     " + flight_id  : "上海    " + flight_id;
+        String boxIdText = boxId != null && boxId.length() > 4 ? "**" + boxId.substring(boxId.length()-4) : boxId;
+        if (!"".equals(hugState)   && "".equals(layState)){
+            tvMessage.setVisibility(View.VISIBLE);
+            tvBoxId.setVisibility(View.VISIBLE);
+            tvMessage.setText(text);
+            tvBoxId.setText(boxIdText);
+            tvMessage.setTextColor(Color.RED);
+            tvBoxId.setTextColor(Color.RED);
+            if (hugState.equals(getResources().getString(R.string.right))){
+                btnFalse.setVisibility(View.VISIBLE);
+                btnFalse.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        JSONObject actionObject = new JSONObject();
+                        actionObject.put(DataKey.J_BOX_ID,boxId);
+                        actionObject.put(DataKey.J_CONFIRM,ParamValue.CONFIRM_CANCEL);
+                        sendConfirmData(actionObject,boxId);
+                        hideView();
+                    }
+                });
             }
-            else if (getString(R.string.wrong).equals(hugState)){
-                tvInHugState.setTextColor(getResources().getColor(R.color.red));
+            else {
+                tvHugResult.setVisibility(View.VISIBLE);
+                tvHugResult.setText(hugState);
+                if (hugState.equals(getResources().getString(R.string.right))){
+                    tvHugResult.setTextColor(Color.GREEN);
+                }
+                else{
+                    tvHugResult.setTextColor(Color.RED);
+                }
             }
         }
-        else{
-            tvInHugTip.setText("");
-        }
+
 
 
 
         if (!"".equals(layState)){
-            tvInLayTip.setText(getString(R.string.in_lay));
-            tvInLayState.setText(layState);
+            tvMessage.setVisibility(View.VISIBLE);
+            tvBoxId.setVisibility(View.VISIBLE);
+            tvMessage.setText(text);
+            tvBoxId.setText(boxIdText);
 
-            if (getString(R.string.right).equals(layState)){
-                tvInLayState.setTextColor(getResources().getColor(R.color.green));
+            if (layState.equals(getResources().getString(R.string.right))){
+                tvHugResult.setVisibility(View.VISIBLE);
+                tvHugResult.setText(layState);
+                tvHugResult.setTextColor(Color.GREEN);
+                tvMessage.setTextColor(Color.RED);
+                tvBoxId.setTextColor(Color.RED);
             }
-            else if (getString(R.string.wrong).equals(layState)){
-                tvInLayState.setTextColor(getResources().getColor(R.color.red));
+            else{
+                tvMessage.setTextColor(Color.BLACK);
+                tvBoxId.setTextColor(Color.BLACK);
+                boardView2.setVisibility(View.VISIBLE);
+                FlashHelper.getInstance().startFlick(boardView2);
+                btnFalse.setVisibility(View.VISIBLE);
+                btnFalse.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        JSONObject actionObject = new JSONObject();
+                        actionObject.put(DataKey.J_BOX_ID,boxId);
+                        actionObject.put(DataKey.J_CONFIRM,ParamValue.CONFIRM_WRONG);
+                        sendConfirmData(actionObject,boxId);
+                        hideView();
+                    }
+                });
+
+                btnTrue.setVisibility(View.VISIBLE);
+                btnTrue.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        JSONObject actionObject = new JSONObject();
+                        actionObject.put(DataKey.J_BOX_ID,boxId);
+                        actionObject.put(DataKey.J_CONFIRM,ParamValue.CONFIRM_RIGHT);
+                        sendConfirmData(actionObject,boxId);
+                        hideView();
+                    }
+                });
+
+
             }
-        }
-        else{
-            tvInLayTip.setText("");
+
+
+
         }
 
-        tvCarId.setText("拖车号: \n" + mCurrentData.getCarId());
+
 
 
 
@@ -334,12 +399,16 @@ public class MainActivity extends AppCompatActivity {
 
 
 
+
+
+
     }
 
     //界面销毁时解除服务
     @Override
     protected void onDestroy() {
         super.onDestroy();
+
         endService();
 
     }
@@ -582,8 +651,8 @@ public class MainActivity extends AppCompatActivity {
     @BindView(R.id.btn_new_car_done)
     Button btnNewCarDone;
 
-    @BindView(R.id.btn_end_service)
-    Button btnEndService;
+//    @BindView(R.id.btn_end_service)
+//    Button btnEndService;
 
     @BindView(R.id.ll_history)
     LinearLayout layoutHistory;
@@ -598,23 +667,30 @@ public class MainActivity extends AppCompatActivity {
     @BindView(R.id.tv_car_id_set)
     TextView tvCarIdSet;
 
-    @BindView(R.id.tv_box_and_epc)
-    TextView tvBoxAndEpc;
+    @BindView(R.id.rl_result_content)
+    RelativeLayout rlResultContent;
 
-    @BindView(R.id.tv_car_id)
-    TextView tvCarId;
+    @BindView(R.id.tv_boxId)
+    TextView tvBoxId;
 
-    @BindView(R.id.tv_in_hug_tip)
-    TextView tvInHugTip;
+    @BindView(R.id.tv_message)
+    TextView tvMessage;
 
-    @BindView(R.id.tv_in_lay_tip)
-    TextView tvInLayTip;
+    @BindView(R.id.tv_hug_result)
+    TextView tvHugResult;
 
-    @BindView(R.id.tv_in_hug_state)
-    TextView tvInHugState;
+    @BindView(R.id.btn_true)
+    Button btnTrue;
 
-    @BindView(R.id.tv_in_lay_state)
-    TextView tvInLayState;
+    @BindView(R.id.btn_false)
+    Button btnFalse;
+
+    @BindView(R.id.board_view2)
+    View boardView2;
+
+    @BindView(R.id.board_view1)
+    View boardView1;
+
 
 
 
@@ -633,26 +709,25 @@ public class MainActivity extends AppCompatActivity {
 
     //按键事件
     @OnClick({R.id.btn_start_service,R.id.btn_new_car_done,
-                R.id.btn_end_service,R.id.btn_show_record,R.id.btn_close_record,
+            R.id.btn_show_record,R.id.btn_close_record,
                 R.id.btn_add_lack})
     public void onClick(View view) {
         switch (view.getId()) {
 
             case R.id.btn_start_service:
                 startService();//开启检测服务
-                btnStartService.setEnabled(false);
-                btnEndService.setEnabled(true);
+
                 break;
 
             case R.id.btn_new_car_done:
 
                 showDialog();
                 break;
-            case R.id.btn_end_service:
-                endService();//结束服务
-                btnStartService.setEnabled(true);
-                btnEndService.setEnabled(false);
-                break;
+//            case R.id.btn_end_service:
+//                endService();//结束服务
+//                btnStartService.setEnabled(true);
+//                btnEndService.setEnabled(false);
+//                break;
             case R.id.btn_show_record:
 
                 layoutHistory.setVisibility(View.VISIBLE);
@@ -697,6 +772,7 @@ public class MainActivity extends AppCompatActivity {
             gLuggageInstance.setCallback(mCallback);
             sendCase();
             sendFlight();
+
 
             gHandler.sendEmptyMessage(CLICK_START);
         }
@@ -773,9 +849,18 @@ public class MainActivity extends AppCompatActivity {
 
 
     //开启检测
+    boolean mStartFlag = false;
     private void startService(){
 
-        int rel = gLuggageInstance.startService();
+        int rel = ResultState.FAIL;
+
+
+        rel = mStartFlag ?  gLuggageInstance.stopService() :   gLuggageInstance.startService()  ;
+
+        if (rel == ResultState.SUCCESS) {
+            mStartFlag = !mStartFlag;
+            btnStartService.setText(mStartFlag ? "结束检测" : "开启检测");
+        }
 
         tvRunResult.setText("开启服务结果: " +  ( rel == ResultState.SUCCESS ? "成功" : "失败") );
 
@@ -802,14 +887,22 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    //显示设置拖车号的对话框
-    public void showDialog() {
-        CustomEditTextDialog customDialog = new CustomEditTextDialog(this);
-        EditText editText = (EditText) customDialog.getEditText();//方法在CustomDialog中实现
-        customDialog.setOnSureListener(new View.OnClickListener() {
+    //初始拖车对话框
+    private CustomChooseDialog customDialog;
+    public void initCarDialog(){
+        customDialog = new CustomChooseDialog(this);
+        customDialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT);
+
+        customDialog.setListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String carID = editText.getText().toString();
+
+
+                String carID = ((Button) v).getText().toString();
+
+                v.setEnabled(false);
+
                 mCarIdSet.add(carID);
                 String carIDSets = "";
                 for (String item: mCarIdSet){
@@ -822,13 +915,10 @@ public class MainActivity extends AppCompatActivity {
                 customDialog.dismiss();
             }
         });
-        customDialog.setOnCanlceListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                customDialog.dismiss();
-            }
-        });
-        customDialog.setTile("请输入拖车号");
+    }
+    //显示拖车对话框
+    public void showDialog() {
+
         customDialog.show();
     }
 
@@ -961,23 +1051,23 @@ public class MainActivity extends AppCompatActivity {
             default:
             case ParamValue.CASE_DEFAULT:
                 dataStr = FileUtil.readJsonFile(CSV_FILE_1);
-                mCaseStr = "当前场景: "  +  getString(R.string.case_1);
+                mCaseStr =  getString(R.string.case_1);
                 break;
             case ParamValue.CASE_CAR_TO_STORE:
                 dataStr = FileUtil.readJsonFile(CSV_FILE_2);
-                mCaseStr = "当前场景: "  +  getString(R.string.case_2);
+                mCaseStr =   getString(R.string.case_2);
                 break;
             case ParamValue.CASE_STORE_TO_CAR:
                 dataStr = FileUtil.readJsonFile(CSV_FILE_3);
-                mCaseStr = "当前场景: "  +  getString(R.string.case_3);
+                mCaseStr =    getString(R.string.case_3);
                 break;
             case ParamValue.CASE_STORE_SEARCH:
                 dataStr = FileUtil.readJsonFile(CSV_FILE_3_1);
-                mCaseStr = "当前场景: "  +  getString(R.string.case_3_1);
+                mCaseStr =   getString(R.string.case_3_1);
                 break;
             case ParamValue.CASE_CAR_TO_BAND :
                 dataStr = FileUtil.readJsonFile(CSV_FILE_4);
-                mCaseStr = "当前场景: "  +  getString(R.string.case_4);
+                mCaseStr = getString(R.string.case_4);
                 break;
         }
         switch (mStationType){
@@ -1178,6 +1268,7 @@ public class MainActivity extends AppCompatActivity {
                     Toast.makeText(mainActivity,str,Toast.LENGTH_SHORT).show();
                     break;
                 case CLICK_START:
+                    mainActivity.initCarDialog();
                     mainActivity.btnNewCarDone.setEnabled(true);
                     mainActivity.btnAddLack.setEnabled(true);
                     mainActivity.btnStartService.performClick();

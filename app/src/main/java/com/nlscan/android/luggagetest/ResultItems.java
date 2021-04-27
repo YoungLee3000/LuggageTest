@@ -7,17 +7,27 @@ class ResultItems {
     private String hugState;
     private String layState;
     private String carId;
+    private String flightId;
 
     public ResultItems(){
 
     }
 
-    public ResultItems(String epcId, String boxId, String hugState, String layState, String carId) {
+    public ResultItems(String epcId, String boxId, String hugState, String layState, String carId, String flightId) {
         this.epcId = epcId;
         this.boxId = boxId;
         this.hugState = hugState;
         this.layState = layState;
         this.carId = carId;
+        this.flightId = flightId;
+    }
+
+    public String getFlightId() {
+        return flightId;
+    }
+
+    public void setFlightId(String flightId) {
+        this.flightId = flightId;
     }
 
     public String getEpcId() {

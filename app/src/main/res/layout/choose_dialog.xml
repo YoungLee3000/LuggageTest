@@ -1,0 +1,93 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/bg_dialog"
+        android:orientation="vertical">
+
+
+        <TextView
+            android:id="@+id/tips"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:layout_marginLeft="15dp"
+            android:layout_marginRight="15dp"
+            android:layout_marginTop="60dp"
+            android:textAlignment="center"
+            android:text="请选择拖车"
+            android:lineSpacingExtra="5dp"
+            android:textColor="@color/black"
+            android:textSize="50sp" />
+
+        <LinearLayout
+            android:layout_marginBottom="20dp"
+            android:layout_alignParentBottom="true"
+            android:layout_width="match_parent"
+            android:layout_height="150dp"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+
+            <Button
+                android:text="1"
+                android:id="@+id/btn_car1"
+                android:layout_marginLeft="5dp"
+                android:layout_marginRight="5dp"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:textSize="22sp"
+                android:background="@drawable/round"/>
+
+            <Button
+                android:text="2"
+                android:id="@+id/btn_car2"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:layout_marginLeft="5dp"
+                android:layout_marginRight="5dp"
+                android:textSize="22sp"
+                android:background="@drawable/round"/>
+
+            <Button
+                android:text="3"
+                android:id="@+id/btn_car3"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:layout_marginLeft="5dp"
+                android:layout_marginRight="5dp"
+                android:textSize="22sp"
+                android:background="@drawable/round"/>
+
+            <Button
+                android:text="4"
+                android:id="@+id/btn_car4"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:layout_marginLeft="5dp"
+                android:layout_marginRight="5dp"
+                android:textSize="22sp"
+                android:background="@drawable/round"/>
+
+            <Button
+                android:text="5"
+                android:id="@+id/btn_car5"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:layout_marginLeft="5dp"
+                android:layout_marginRight="5dp"
+                android:textSize="22sp"
+                android:background="@drawable/round"/>
+
+
+
+
+
+
+        </LinearLayout>
+    </RelativeLayout>
+</LinearLayout>
