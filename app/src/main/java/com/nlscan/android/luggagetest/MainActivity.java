@@ -913,6 +913,8 @@ public class MainActivity extends AppCompatActivity {
                 newCar(carID,ParamValue.NEW_CAR_DONE);
                 Log.d(TAG,"the car id is " + carID);
                 customDialog.dismiss();
+
+                Toast.makeText(MainActivity.this,"设置拖车成功",Toast.LENGTH_SHORT).show();
             }
         });
     }
